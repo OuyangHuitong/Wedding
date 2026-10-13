@@ -366,6 +366,60 @@ select.field{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg 
 .viewer-cap{color:#B7ADA8;font-size:12px;margin-top:14px;letter-spacing:.05em}
 .viewer-hint{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 22px);color:#8A817C;font-size:11px;letter-spacing:.1em}
 
+/* ---------- 同步 ---------- */
+.code-show{
+  background:var(--ink);color:#fff;border-radius:16px;padding:20px;text-align:center;margin-bottom:12px;
+}
+.code-show .cc{font-size:30px;font-weight:600;letter-spacing:.12em;font-family:ui-monospace,Menlo,monospace;word-break:break-all;line-height:1.3}
+.code-show .cl{font-size:10.5px;color:#B7ADA8;letter-spacing:.2em;margin-top:8px}
+.sync-ok{color:var(--green);font-size:12px}
+.sync-list li{font-size:13px;color:var(--ink-2)}
+.ta{
+  width:100%;border:1px solid var(--line-2);border-radius:12px;padding:10px 12px;background:var(--card-2);
+  font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--ink);outline:none;resize:none;height:90px;
+}
+.ta:focus{border-color:var(--accent-2);background:#fff}
+
+/* 多图网格 */
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.mg-add{
+  aspect-ratio:1;border:1.5px dashed var(--line-2);border-radius:11px;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;color:var(--ink-3);
+  cursor:pointer;font-size:9.5px;gap:3px;transition:.2s;background:var(--card-2);
+}
+.mg-add svg{width:15px;height:15px;stroke-width:1.6}
+.mg-add:active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-2)}
+.mg-cell{position:relative;aspect-ratio:1;border-radius:11px;overflow:hidden;background:var(--bg-2)}
+.mg-cell img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer}
+.mg-del{
+  position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;border:0;
+  background:rgba(44,38,36,.55);color:#fff;display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(3px);cursor:pointer;
+}
+.mg-del svg{width:10px;height:10px;stroke-width:2.4}
+/* 链接 chips */
+.links{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.lk{
+  display:inline-flex;align-items:center;gap:5px;padding:4.5px 10px;border-radius:20px;
+  background:var(--gold-soft);color:var(--gold);font-size:11px;cursor:pointer;border:1px solid transparent;
+  transition:.2s;max-width:100%;
+}
+.lk:active{background:#F0E4D4}
+.lk span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.lk-x{
+  width:14px;height:14px;flex:0 0 14px;border-radius:50%;background:rgba(194,163,135,.25);
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.lk-x svg{width:7px;height:7px;stroke-width:2.6}
+.lk-add{
+  display:inline-flex;align-items:center;gap:4px;padding:4.5px 10px;border-radius:20px;
+  border:1px dashed var(--line-2);color:var(--ink-3);font-size:11px;cursor:pointer;background:transparent;
+  transition:.2s;
+}
+.lk-add:active{border-color:var(--accent-2);color:var(--accent)}
+.lk-add svg{width:11px;height:11px;stroke-width:2}
+.lk-foot{margin-top:10px}
+
 /* ---------- fab ---------- */
 .fab{
   position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom) + 20px);
@@ -430,6 +484,14 @@ select.field{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg 
     <section class="page" id="p-idea"></section>
     <!-- 妆容 -->
     <section class="page" id="p-makeup"></section>
+    <!-- 拍照 -->
+    <section class="page" id="p-paizhao"></section>
+    <!-- 视频 -->
+    <section class="page" id="p-video"></section>
+    <!-- 游戏 -->
+    <section class="page" id="p-game"></section>
+    <!-- 同步 -->
+    <section class="page" id="p-sync"></section>
   </div>
 </div>
 
@@ -552,11 +614,16 @@ if(Array.isArray(S.progress)){
     if(!p.date) p.date = S.settings.date ? S.settings.date : todayKey();
   });
 }
+// 拍照/视频/游戏清单：迁移到启动时执行（见 seedCollections）
 
 let saveTimer=null;
-function save(){
+function save(skipPush){
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(()=>{ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){ toast('存储失败'); } },120);
+  saveTimer = setTimeout(()=>{
+    S._ts=Date.now();
+    try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){ toast('存储失败'); }
+    if(!skipPush) scheduleAutoPush();
+  },120);
 }
 function toast(msg){
   const el=$('#toast'); el.textContent=msg; el.classList.add('on');
@@ -608,6 +675,101 @@ function imgBlock(src,delAttr,capAttr,cap=''){
     <button class="img-x" ${delAttr?`data-imgdel="${delAttr}"`:''} aria-label="删除图片">${svg('imgdel')}</button>
   </div>`;
 }
+/* =============== 多图与链接组件 =============== */
+// 多图网格：ctx='idea:ID' 或 'prog:ID'
+function mgridHTML(ctx,imgs,small){
+  const cells=imgs.map((src,i)=>`
+    <div class="mg-cell">
+      <img src="${src}" data-view="${ctx}:${esc(String(i))}">
+      <button class="mg-del" data-mgdel="${ctx}:${i}">${svg('close')}</button>
+    </div>`).join('');
+  return `<div class="mgrid${small?' mgrid-sm':''}">
+    ${cells}
+    <div class="mg-add" data-mgadd="${ctx}">${svg('camera')}添加图片</div>
+  </div>`;
+}
+const PLATFORMS=[['淘宝','taobao'],['拼多多','pdd'],['京东','jd'],['抖音','douyin'],['小红书','xhs'],['微博','weibo'],['其他','other']];
+// 链接行：ctx 同上
+function linksHTML(ctx,links){
+  const chips=(links||[]).map((l,i)=>`<span class="lk" data-lkopen="${ctx}:${i}">
+      <span>${esc(l.name)}</span>
+      <i class="lk-x" data-lkdel="${ctx}:${i}">${svg('close')}</i>
+    </span>`).join('');
+  return `<div class="links">
+    ${chips}<button class="lk-add" data-lkadd="${ctx}">${svg('plus')}添加链接</button>
+  </div>`;
+}
+// 统一绑定：根据ctx前缀找到目标数组
+function ctxRef(ctx){
+  const [kind,id]=ctx.split(':');
+  const collectionCfg = Object.values(COLLECTIONS).find(c=>c.ctx===kind);
+  if(kind==='idea'){ const o=S.ideas.find(x=>x.id===id); return {img:o&&o.imgs, lk:o&&o.links, obj:o}; }
+  if(kind==='prog'){ const o=S.progress.find(x=>x.id===id); return {img:o&&o.imgs, lk:o&&o.links, obj:o}; }
+  if(kind==='shop'){ const o=S.shopping.find(x=>x.id===id); return {img:null, lk:o&&o.links, obj:o}; }
+  if(collectionCfg){ const o=S[collectionCfg.store].find(x=>x.id===id); return {img:o&&o.imgs, lk:o&&o.links, obj:o}; }
+  if(kind==='mk'){ const o=S.makeup[id]; return {img:o&&o.imgs, lk:null, obj:o}; }
+  if(kind==='mkf'){ const [lk,fk]=id.split('.'); const o=S.makeup[lk]&&S.makeup[lk].fields[fk]; return {img:o&&o.imgs, lk:o&&o.links, obj:o}; }
+  return {};
+}
+function ensureMulti(o){
+  if(!Array.isArray(o.imgs)) o.imgs = o.img? [o.img] : [];   // 单图迁移
+  if(!Array.isArray(o.links)) o.links=[];
+  delete o.img;
+}
+function bindMedia(pageEl,ctxPrefix,rerender){
+  $$('[data-mgadd]',pageEl).forEach(el=>el.onclick=()=>{
+    const ref=ctxRef(el.dataset.mgadd); if(!ref.obj) return;
+    ensureMulti(ref.obj);
+    pickImage(d=>{
+      ref.obj.imgs.push(d); save(); rerender();
+      if(JSON.stringify(S).length>4700000) toast('提示：存储接近上限，图片较多时注意删减');
+    });
+  });
+  $$('[data-mgdel]',pageEl).forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const full=el.dataset.mgdel; const [ctx,i]=splitLast(full);
+    const ref=ctxRef(ctx); if(!ref.obj) return;
+    if(!confirm('删除这张图片？')) return;
+    ref.obj.imgs.splice(+i,1); save(); rerender(); toast('已删除');
+  });
+  $$('[data-view]',pageEl).forEach(el=>el.onclick=e=>{
+    if(e.target.closest('.mg-del')||e.target.closest('.lk-x')) return;
+    const full=el.dataset.view; const [ctx,i]=splitLast(full);
+    const ref=ctxRef(ctx);
+    if(ref.obj) viewImage(el.src, ref.obj.title||ref.obj.name||'');
+  });
+  $$('[data-lkadd]',pageEl).forEach(el=>el.onclick=()=>{
+    const ctx=el.dataset.lkadd;
+    openSheet('添加链接',[
+      f('选择','平台','p','taobao',PLATFORMS.map(([n,id])=>[id,n])),
+      f('输入框','链接地址（长按淘宝/小红书分享按钮可复制）','u','')
+    ],v=>{
+      if(!v.u.trim()) return toast('请输入链接地址');
+      const ref=ctxRef(ctx); if(!ref.obj) return;
+      ensureMulti(ref.obj);
+      const name=(PLATFORMS.find(([k,id])=>id===v.p)||['链接'])[0];
+      let url=v.u.trim();
+      if(!/^https?:\/\//i.test(url)) url='https://'+url.replace(/^\/+/,'');
+      ref.obj.links.push({name,url}); save(); closeSheet(); rerender(); toast('链接已添加');
+    });
+  });
+  $$('[data-lkdel]',pageEl).forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const full=el.dataset.lkdel; const [ctx,i]=splitLast(full);
+    const ref=ctxRef(ctx); if(!ref.obj) return;
+    if(!confirm('删除这个链接？')) return;
+    ref.obj.links.splice(+i,1); save(); rerender(); toast('已删除');
+  });
+  $$('[data-lkopen]',pageEl).forEach(el=>el.onclick=e=>{
+    if(e.target.closest('.lk-x')) return;
+    const full=el.dataset.lkopen; const [ctx,i]=splitLast(full);
+    const ref=ctxRef(ctx); const l=ref.obj&&ref.obj.links[+i];
+    if(l) window.open(l.url,'_blank','noopener');
+  });
+}
+function splitLast(s){
+  const i=s.lastIndexOf(':'); return [s.slice(0,i), s.slice(i+1)];
+}
 
 /* =============== 图标 =============== */
 const ICON = {
@@ -618,6 +780,9 @@ const ICON = {
   bag:'<path d="M6 8h12l1 12H5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
   bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.4.3.5.7.5 1.1v1h6v-1c0-.4.1-.8.5-1.1A6 6 0 0 0 12 3z"/>',
   mirror:'<circle cx="12" cy="12" r="9"/><path d="M15 9.5c0-1.9-1.6-3-3.4-3-1.9 0-3.2 1.2-3.2 2.8 0 2.6 5.2 1.8 5.2 4.2 0 1.4-1.2 2.3-2.8 2.3"/>',
+  sync:'<path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-8.5-6"/><path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 8.5 6"/><path d="M21 15v-3h-3M3 9v3h3"/>',
+  video:'<rect x="3" y="6" width="13" height="12" rx="2.5"/><path d="M16 10.5l5-3v9l-5-3"/>',
+  game:'<rect x="3" y="7" width="18" height="11" rx="4"/><path d="M8 11v3M6.5 12.5h3"/><circle cx="15.5" cy="11.5" r="1" fill="currentColor"/><circle cx="17.8" cy="13.8" r="1" fill="currentColor"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
   trash:'<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13h10l1-13"/>',
   camera:'<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
@@ -635,7 +800,11 @@ const PAGES = [
   {id:'cost',   icon:'wallet',label:'开销'},
   {id:'shop',   icon:'bag',   label:'待购'},
   {id:'idea',   icon:'bulb',  label:'灵感'},
-  {id:'makeup', icon:'mirror',label:'妆容'}
+  {id:'makeup', icon:'mirror',label:'妆容'},
+  {id:'paizhao',icon:'camera',label:'拍照'},
+  {id:'video',  icon:'video', label:'视频'},
+  {id:'game',   icon:'game',  label:'游戏'},
+  {id:'sync',   icon:'sync',  label:'同步'}
 ];
 let cur = 'home';
 function buildNav(){
@@ -893,6 +1062,7 @@ function renderTodo(){
 /* =============== 阶段路线图 =============== */
 const stageOpen = {};
 function renderProgress(){
+  S.progress.forEach(ensureMulti);
   const nowId = currentStageId();
   const nowIdx = STAGES.findIndex(s=>s.id===nowId);
 
@@ -939,6 +1109,8 @@ function renderProgress(){
                 <div class="item-body">
                   <div class="item-t" style="${p.done?'color:var(--ink-3);text-decoration:line-through':''}">${esc(p.title)}</div>
                   <div class="item-s">${p.date?fmtDate(p.date):''}${p.note?` · ${esc(p.note)}`:''}</div>
+                  ${mgridHTML('prog:'+p.id,p.imgs,true)}
+                  ${linksHTML('prog:'+p.id,p.links)}
                 </div>
                 <button class="icon-btn" data-pedit="${p.id}">${svg('edit')}</button>
               </div>`).join('')
@@ -949,9 +1121,10 @@ function renderProgress(){
     </div>
   `;
   $$('[data-sh]',$('#p-progress')).forEach(el=>el.onclick=e=>{
-    if(e.target.closest('[data-pg]')||e.target.closest('[data-pedit]')) return;
+    if(e.target.closest('[data-pg]')||e.target.closest('[data-pedit]')||e.target.closest('.mg-cell')||e.target.closest('.mg-add')||e.target.closest('.lk')||e.target.closest('.lk-add')) return;
     const id=el.dataset.sh; stageOpen[id]=!stageOpen[id]; renderProgress();
   });
+  bindMedia($('#p-progress'),'prog',renderProgress);
   $$('[data-pg]',$('#p-progress')).forEach(el=>el.onclick=e=>{
     e.stopPropagation();
     const p=S.progress.find(x=>x.id===el.dataset.pg); if(p){ p.done=!p.done; save(); renderProgress(); }
@@ -1027,6 +1200,7 @@ function renderCost(){
 
 /* =============== 待购 =============== */
 function renderShop(){
+  S.shopping.forEach(ensureMulti);
   const cats=[...new Set(S.shopping.map(s=>s.cat||'其他'))];
   const got=S.shopping.filter(s=>s.got).length;
   $('#p-shop').innerHTML=`
@@ -1056,6 +1230,7 @@ function renderShop(){
                 ${s.price?`<span>小计 ${money((Number(s.price)||0)*(Number(s.qty)||1))}</span>`:''}
                 ${s.note?`<span>${esc(s.note)}</span>`:''}
               </div>
+              ${linksHTML('shop:'+s.id,s.links)}
             </div>
             <button class="icon-btn" data-sedit="${s.id}">${svg('edit')}</button>
           </div>`).join('')}
@@ -1065,6 +1240,7 @@ function renderShop(){
   $$('[data-sg]',$('#p-shop')).forEach(el=>el.onclick=()=>{
     const s=S.shopping.find(x=>x.id===el.dataset.sg); if(s){ s.got=!s.got; save(); renderShop(); }
   });
+  bindMedia($('#p-shop'),'shop',renderShop);
   $$('[data-sedit]',$('#p-shop')).forEach(el=>el.onclick=()=>{
     const s=S.shopping.find(x=>x.id===el.dataset.sedit); if(!s) return;
     openSheet('编辑物品',[
@@ -1080,36 +1256,21 @@ function renderShop(){
 
 /* =============== 灵感 =============== */
 function renderIdea(){
+  S.ideas.forEach(ensureMulti);
   $('#p-idea').innerHTML=`
     <div class="ptitle">创意灵感</div>
     <div class="psub">Inspiration</div>
     ${ S.ideas.length ? `<div class="ideas">${S.ideas.map(i=>`
-      <div class="idea${i.img?' hasimg':''}">
-        ${i.img?imgBlock(i.img,'idea:'+i.id,'idea:'+esc(i.title),esc(i.title)):''}
+      <div class="idea">
+        ${mgridHTML('idea:'+i.id,i.imgs,true)}
         <div class="idea-t">${esc(i.title)}</div>
         <div class="idea-c">${esc(i.content)}</div>
-        <div class="row" style="margin-top:10px;gap:6px">
-          <button class="imgbtn" data-iimg="${i.id}">${svg('camera')}${i.img?'换图':'添加图片'}</button>
-          <button class="imgbtn" data-iedit="${i.id}">${svg('edit')}编辑</button>
-        </div>
+        ${linksHTML('idea:'+i.id,i.links)}
+        <div class="lk-foot"><button class="imgbtn" data-iedit="${i.id}">${svg('edit')}编辑文字</button></div>
       </div>`).join('')}</div>`
     : `<div class="card"><div class="empty">还没有灵感<br><span style="font-size:12px">点击下方 ＋ 记录一个想法</span></div></div>`}
   `;
-  $$('[data-iimg]',$('#p-idea')).forEach(el=>el.onclick=()=>{
-    const i=S.ideas.find(x=>x.id===el.dataset.iimg); if(!i) return;
-    pickImage(d=>{ i.img=d; save(); renderIdea(); toast('图片已添加'); });
-  });
-  $$('[data-imgdel]',$('#p-idea')).forEach(el=>el.onclick=e=>{
-    e.stopPropagation();
-    const [_,id]=el.dataset.imgdel.split(':');
-    const i=S.ideas.find(x=>x.id===id); if(!i) return;
-    if(confirm('删除这张图片？')){ i.img=''; save(); renderIdea(); toast('图片已删除'); }
-  });
-  $$('[data-view]',$('#p-idea')).forEach(el=>el.onclick=e=>{
-    if(e.target.closest('.img-x')) return;
-    const v=el.dataset.view;
-    viewImage(el.src, v.slice(v.indexOf(':')+1));
-  });
+  bindMedia($('#p-idea'),'idea',renderIdea);
   $$('[data-iedit]',$('#p-idea')).forEach(el=>el.onclick=()=>{
     const i=S.ideas.find(x=>x.id===el.dataset.iedit); if(!i) return;
     openSheet('编辑灵感',[
@@ -1122,61 +1283,312 @@ function renderIdea(){
 
 /* =============== 妆容 =============== */
 const LOOKS=[
-  {k:'chenpao', n:'晨袍',  en:'Morning Robe',  c:'#C9A87C', fields:[['dress','穿什么'],['hair','发型'],['makeup','妆容'],['acc','配饰']]},
-  {k:'hunsha',  n:'婚纱',  en:'Wedding Gown',  c:'#C07D8A', fields:[['dress','穿什么'],['hair','发型'],['makeup','妆容'],['acc','配饰']]},
-  {k:'yingbin', n:'迎宾',  en:'Welcome',       c:'#8FA9B8', fields:[['dress','穿什么'],['hair','发型'],['makeup','妆容'],['acc','配饰']]},
-  {k:'xiufu',   n:'秀禾敬酒', en:'Toast',      c:'#B5453F', fields:[['dress','穿什么'],['hair','发型'],['makeup','妆容'],['acc','配饰']]}
+  {k:'chenpao', n:'晨袍',    en:'Morning Robe',  c:'#C9A87C', fields:[['dress','穿什么'],['hair','发型'],['makeup','妆容'],['acc','配饰']]},
+  {k:'xiufu',   n:'中式秀禾', en:'Chinese Gown',  c:'#B5453F', fields:[['dress','穿什么'],['hair','发型'],['makeup','妆容'],['acc','配饰']]},
+  {k:'yingbin', n:'迎宾服',  en:'Welcome',       c:'#8FA9B8', fields:[['dress','穿什么'],['hair','发型'],['makeup','妆容'],['acc','配饰']]},
+  {k:'hunsha',  n:'主纱',    en:'Wedding Gown',  c:'#C07D8A', fields:[['dress','穿什么'],['hair','发型'],['makeup','妆容'],['acc','配饰']]},
+  {k:'jingjiu', n:'敬酒服',  en:'Toast Dress',   c:'#C2A387', fields:[['dress','穿什么'],['hair','发型'],['makeup','妆容'],['acc','配饰']]}
 ];
+/* 拍照 / 视频 / 游戏：自由条目清单（用户逐一添加细节） */
+const COLLECTIONS = {
+  paizhao:{ store:'paizhao', ctx:'pz', title:'拍照清单', en:'Must-capture Moments',
+    hint:'现场必拍的画面：和家人父母拥抱的瞬间、亲友群像、欢乐温馨的抓拍…一条一个画面',
+    seed:[
+      {t:'与父母拥抱的瞬间', c:'仪式前后和爸妈的拥抱，抓拍最真实的表情，别摆拍。'},
+      {t:'亲友群像大合照', c:'按亲疏分组拍：双方父母、祖辈、伴娘伴郎团、大学同学。'},
+      {t:'欢乐温馨的抓拍', c:'游戏环节大笑、老人聊天、孩子跑动，这些都是氛围感的来源。'}
+    ]},
+  video:{ store:'video', ctx:'vd', title:'视频清单', en:'Must-film Scenes',
+    hint:'一定要拍下来的视频场景：交换戒指、堵门相见…一条一个场景',
+    seed:[
+      {t:'交换戒指', c:'特写机位，戒指交换的 10 秒一定不能缺，建议双机位保险。'},
+      {t:'新郎堵门 · 第一眼相见', c:'开门瞬间两人的第一反应，情绪最真，值得长镜头。'}
+    ]},
+  game:{ store:'game', ctx:'gm', title:'游戏环节', en:'Wedding Games',
+    hint:'抽奖、互动游戏、拍卖礼品…一条一个环节，写清操作人、礼物和价值',
+    seed:[
+      {t:'抽奖环节', c:'操作人：主持人。奖品和名单待定，写清抽奖方式和轮数。'},
+      {t:'互动游戏', c:'和宾客一起玩的环节，道具和规则待补充。'},
+      {t:'拍卖礼品', c:'礼品清单和起拍价待补充，确认由谁来操作。'}
+    ]}
+};
+/* 通用条目清单页渲染 */
+function renderCollection(pageId, cfg){
+  const key=cfg.store;
+  if(!Array.isArray(S[key])) S[key]=[];   // 旧结构迁移为空清单
+  const list=S[key];
+  const confKey=cfg.ctx;
+  $('#p-'+pageId).innerHTML=`
+    <div class="ptitle">${cfg.title}</div>
+    <div class="psub">${cfg.en}</div>
+    <div class="card" style="padding:13px 15px">
+      <div class="muted" style="font-size:12.5px;line-height:1.7">${cfg.hint}<br>点击下方 ＋ 添加一条</div>
+    </div>
+    ${ list.length ? list.map(e=>`
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><i></i>${esc(e.t)}</div>
+          <button class="icon-btn" data-edit="${confKey}:${e.id}">${svg('edit')}</button>
+        </div>
+        ${e.text?`<div class="item-s" style="margin-bottom:10px">${esc(e.text)}</div>`:''}
+        ${mgridHTML(confKey+':'+e.id,e.imgs)}
+        ${linksHTML(confKey+':'+e.id,e.links)}
+      </div>`).join('')
+    : `<div class="card"><div class="empty">还没有条目<br><span style="font-size:12px">点击下方 ＋ 添加第一条</span></div></div>`}
+  `;
+  list.forEach(ensureMulti);
+  bindMedia($('#p-'+pageId),confKey,()=>renderCollection(pageId,cfg));
+  $$('[data-edit]',$('#p-'+pageId)).forEach(el=>el.onclick=()=>{
+    const [ck,id]=el.dataset.edit.split(':');
+    const arr=S[cfg.store]; const it=arr.find(x=>x.id===id); if(!it) return;
+    openSheet('编辑条目',[
+      f('输入框','标题','t',it.t),
+      f('文本域','描述 / 细节（操作人、礼物、价值、画面要求等）','c',it.text||'')
+    ],v=>{ it.t=v.t||it.t; it.text=v.c||''; save(); renderCollection(pageId,cfg); closeSheet(); toast('已更新'); },
+      ()=>{ S[cfg.store]=arr.filter(x=>x.id!==id); save(); renderCollection(pageId,cfg); closeSheet(); toast('已删除'); });
+  });
+}
+/* 妆容：每类目多张参考图 + 每细节字段（文字/多图/链接） */
+function mkMigrate(){
+  for(const l of LOOKS){
+    const old=S.makeup[l.k];
+    if(old && !old.fields){   // 旧结构迁移
+      const o={imgs:old.img?[old.img]:[],fields:{}};
+      l.fields.forEach(([fk])=>{
+        o.fields[fk]={text:old[fk]||'',imgs:[],links:[]};
+      });
+      S.makeup[l.k]=o;
+    } else if(!S.makeup[l.k]){
+      S.makeup[l.k]={imgs:[],fields:{}};
+      l.fields.forEach(([fk])=>{ S.makeup[l.k].fields[fk]={text:'',imgs:[],links:[]}; });
+    } else {
+      // 补全新增字段（如拆分后的敬酒服）
+      l.fields.forEach(([fk])=>{
+        if(!S.makeup[l.k].fields[fk]) S.makeup[l.k].fields[fk]={text:'',imgs:[],links:[]};
+      });
+      if(!Array.isArray(S.makeup[l.k].imgs)) S.makeup[l.k].imgs=[];
+    }
+  }
+}
 function renderMakeup(){
+  mkMigrate();
   $('#p-makeup').innerHTML=`
     <div class="ptitle">妆容灵感</div>
-    <div class="psub">Bridal Looks</div>
+    <div class="psub">Bridal Looks · ${LOOKS.length} 套</div>
     ${LOOKS.map(l=>{
-      const d=S.makeup[l.k]||{};
+      const d=S.makeup[l.k];
       return `<div class="mk-card">
         <div class="mk-head">
           <div class="mk-dot" style="background:${l.c}"></div>
           <div class="grow"><div class="mk-name">${l.n}</div><div class="mk-en">${l.en}</div></div>
         </div>
-        ${ d.img
-          ? `<div class="mk-img">${imgBlock(d.img,'mk:'+l.k,'mk:'+esc(l.n),esc(l.n)+' · 参考图')}</div>`
-          : `<div class="img-ph mk-img" data-mkimg="${l.k}">${svg('camera')}添加${l.n}参考图</div>`}
-        <div class="mk-grid">
-          ${l.fields.map(([k,label])=>`
-            <div class="mk-field">
-              <label>${label}</label>
-              <textarea class="field" rows="2" data-mk="${l.k}.${k}" placeholder="记录${l.n}的${label}…">${esc(d[k]||'')}</textarea>
-            </div>`).join('')}
-        </div>
+        <div class="fl" style="margin-top:12px">整体参考图</div>
+        ${mgridHTML('mk:'+l.k,d.imgs)}
+        ${l.fields.map(([fk,label])=>{
+          const fd=d.fields[fk];
+          return `<div class="mk-field" style="margin-top:14px">
+            <label>${label}</label>
+            <textarea class="field" rows="2" data-mktext="${l.k}.${fk}" placeholder="记录${l.n}的${label}…">${esc(fd.text||'')}</textarea>
+            ${mgridHTML('mkf:'+l.k+'.'+fk, fd.imgs)}
+            ${linksHTML('mkf:'+l.k+'.'+fk, fd.links)}
+          </div>`;
+        }).join('')}
       </div>`;
     }).join('')}
   `;
-  $$('[data-mkimg]',$('#p-makeup')).forEach(el=>el.onclick=()=>{
-    const k=el.dataset.mkimg;
-    pickImage(d=>{ S.makeup[k]=S.makeup[k]||{}; S.makeup[k].img=d; save(); renderMakeup(); toast('参考图已添加'); });
-  });
-  $$('[data-imgdel]',$('#p-makeup')).forEach(el=>el.onclick=e=>{
-    e.stopPropagation();
-    const [_,k]=el.dataset.imgdel.split(':');
-    if(confirm('删除这张参考图？')){ S.makeup[k].img=''; save(); renderMakeup(); toast('已删除'); }
-  });
-  $$('[data-view]',$('#p-makeup')).forEach(el=>el.onclick=e=>{
-    if(e.target.closest('.img-x')) return;
-    const v=el.dataset.view;
-    viewImage(el.src, v.slice(v.indexOf(':')+1)+' · 参考图');
-  });
-  $$('[data-mk]',$('#p-makeup')).forEach(el=>el.oninput=()=>{
-    const [look,key]=el.dataset.mk.split('.');
-    S.makeup[look]=S.makeup[look]||{};
-    S.makeup[look][key]=el.value;
+  const rerender=()=>renderMakeup();
+  bindMedia($('#p-makeup'),'mk',rerender);
+  $$('[data-mktext]',$('#p-makeup')).forEach(el=>el.oninput=()=>{
+    const [lk,fk]=el.dataset.mktext.split('.');
+    S.makeup[lk].fields[fk].text=el.value;
     save();
+  });
+}
+
+/* =============== 双人同步（jsonblob 云端） =============== */
+const SYNC_API='https://jsonblob.com/api/jsonBlob';
+if(!S.sync) S.sync={code:'',ts:0};
+if(S._ts===undefined) S._ts=0;
+
+let suppressPush=false;   // 拉取写回时避免触发自动推送
+async function apiJSON(url,opt){
+  const r=await fetch(url,opt);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r;
+}
+function syncPayload(){
+  const p=JSON.parse(JSON.stringify(S));
+  delete p.sync;
+  return p;
+}
+function syncApply(remote){
+  const code=S.sync.code;
+  S=Object.assign({},remote);
+  S.sync={code,ts:remote._ts||Date.now()};
+  suppressPush=true;
+  try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
+  suppressPush=false;
+}
+async function syncCreate(){
+  toast('正在创建共享空间…');
+  try{
+    const r=await apiJSON(SYNC_API,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify(syncPayload())
+    });
+    const loc=r.headers.get('Location')||'';
+    const m=loc.match(/jsonBlob\/([A-Za-z0-9-]+)/);
+    const code=m?m[1]:loc.split('/').pop();
+    if(!code||!/^[A-Za-z0-9-]{8,}$/.test(code)) throw new Error('未获取到配对码');
+    S.sync.code=code; S.sync.ts=Date.now(); save();
+    renderSync(); toast('共享空间已创建，把配对码发给TA');
+  }catch(e){ toast('创建失败，检查网络后重试'); }
+}
+async function syncPush(force){
+  if(!S.sync.code) return;
+  const payload=JSON.stringify(syncPayload());
+  if(payload.length>950000 && !force){ toast('数据过大（图片过多），无法同步'); return; }
+  try{
+    if(!force){
+      const r=await apiJSON(SYNC_API+'/'+S.sync.code,{headers:{'Accept':'application/json'}});
+      const remote=await r.json();
+      if((remote._ts||0)>(S._ts||0)){ toast('云端有更新的版本，请先拉取'); return; }
+    }
+    await apiJSON(SYNC_API+'/'+S.sync.code,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:payload
+    });
+    S.sync.ts=Date.now(); save(true);
+    if(force) toast('已推送到云端 ✓');
+  }catch(e){ if(force) toast('推送失败，检查网络'); }
+}
+async function syncPull(force){
+  if(!S.sync.code) return;
+  try{
+    const r=await apiJSON(SYNC_API+'/'+S.sync.code,{headers:{'Accept':'application/json'}});
+    const remote=await r.json();
+    if(!remote||!remote.settings) throw new Error('empty');
+    if((remote._ts||0)<=(S._ts||0)&&!force){ if(force) toast('本地已是最新 ✓'); return; }
+    if(!force&&!confirm('云端有更新的数据（'+new Date(remote._ts).toLocaleString()+'），覆盖本地？')) return;
+    syncApply(remote);
+    render(cur); renderSync();
+    toast(force?'已从云端拉取 ✓':'已同步云端最新数据');
+  }catch(e){ if(force) toast('拉取失败，检查网络'); }
+}
+// 自动同步：改动后 8 秒静默推送；启动时静默拉取
+let pushTimer=null;
+function scheduleAutoPush(){
+  if(!S.sync.code||suppressPush) return;
+  clearTimeout(pushTimer);
+  pushTimer=setTimeout(()=>{ S._ts=Date.now(); syncPush(false); },8000);
+}
+function renderSync(){
+  const has=!!S.sync.code;
+  $('#p-sync').innerHTML=`
+    <div class="ptitle">双人同步</div>
+    <div class="psub">Share & Sync</div>
+    ${has?`
+      <div class="code-show">
+        <div class="cl">配对码 · 发给另一半</div>
+        <div class="cc">${esc(S.sync.code)}</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><i></i>同步状态</div>
+          <span class="sync-ok">已连接</span>
+        </div>
+        <ul class="sync-list" style="list-style:none;padding:0;margin:0 0 12px">
+          <li>· 打开 App 时自动拉取云端最新数据</li>
+          <li>· 每次改动后自动推送到云端（约 8 秒后）</li>
+          <li>· 云端更新时手机上打开即会同步</li>
+        </ul>
+        <div class="row wrap" style="gap:8px">
+          <button class="btn sm" data-sync-push>推送我的最新 ↑</button>
+          <button class="btn ghost sm" data-sync-pull>拉取云端最新 ↓</button>
+        </div>
+        <div class="muted" style="margin-top:10px;font-size:11.5px">
+          云端最后更新：${S.sync.ts?new Date(S.sync.ts).toLocaleString():'—'}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title"><i></i>注意事项</div></div>
+        <ul class="sync-list" style="list-style:none;padding:0;margin:0">
+          <li>· 两人避免同一时间同时编辑，后保存的会覆盖先保存的</li>
+          <li>· 建议一人主编辑，另一人查看 + 偶尔补充</li>
+          <li>· 图片也会同步，但图片过多会超出云端容量</li>
+        </ul>
+        <button class="btn ghost block" style="margin-top:12px;color:#C25E5E" data-sync-off>退出共享（保留本地数据）</button>
+      </div>
+    `:`
+      <div class="card">
+        <div class="card-head"><div class="card-title"><i></i>创建共享空间</div></div>
+        <p class="muted" style="margin:0 0 14px">把当前的全部备婚数据上传到云端，生成一个配对码。另一半输入配对码后，两人看到的就是同一份实时数据。</p>
+        <button class="btn block" data-sync-create>创建 · 生成配对码</button>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title"><i></i>加入对方的共享空间</div></div>
+        <input class="field" id="joinCode" placeholder="输入对方发来的配对码" style="margin-bottom:12px;font-family:ui-monospace,Menlo,monospace">
+        <button class="btn ghost block" data-sync-join>加入并拉取数据</button>
+        <div class="tip" style="margin-top:12px">⚠️ 加入后云端数据会<b>覆盖</b>你本机的现有记录，请确认后再操作。</div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title"><i></i>本机备份</div></div>
+        <p class="muted" style="margin:0 0 14px">不走云端的备份方式：把数据码发给自己留档，随时可粘贴还原。</p>
+        <div class="row wrap" style="gap:8px">
+          <button class="btn ghost sm" data-sync-export>导出数据码</button>
+          <button class="btn ghost sm" data-sync-import>粘贴还原</button>
+        </div>
+      </div>
+    `}
+  `;
+  $$('[data-sync-create]',$('#p-sync')).forEach(el=>el.onclick=()=>syncCreate());
+  $$('[data-sync-join]',$('#p-sync')).forEach(el=>el.onclick=async()=>{
+    const code=$('#joinCode').value.trim();
+    if(!code) return toast('请输入配对码');
+    if(!confirm('将用云端数据覆盖本机现有记录，确定？')) return;
+    S.sync.code=code;
+    try{
+      const r=await apiJSON(SYNC_API+'/'+code,{headers:{'Accept':'application/json'}});
+      const remote=await r.json();
+      if(!remote||!remote.settings) throw new Error('bad');
+      syncApply(remote);
+      render(cur); renderSync(); toast('已加入共享空间 ✓');
+    }catch(e){ S.sync.code=''; toast('配对码无效或网络异常'); }
+  });
+  $$('[data-sync-push]',$('#p-sync')).forEach(el=>el.onclick=()=>{ S._ts=Date.now(); save(); syncPush(true); });
+  $$('[data-sync-pull]',$('#p-sync')).forEach(el=>el.onclick=()=>syncPull(true));
+  $$('[data-sync-off]',$('#p-sync')).forEach(el=>el.onclick=()=>{
+    if(confirm('退出共享？本地数据保留，不再自动同步。')){
+      S.sync={code:'',ts:0}; save(); renderSync(); toast('已退出共享');
+    }
+  });
+  $$('[data-sync-export]',$('#p-sync')).forEach(el=>el.onclick=()=>{
+    const data=btoa(unescape(encodeURIComponent(JSON.stringify(syncPayload()))));
+    openSheet('导出数据码（长按复制）',[
+      {type:'文本域',label:'',key:'x',val:data}
+    ],()=>{ closeSheet(); toast('已导出'); });
+    setTimeout(()=>{ const ta=$('#sheet textarea'); if(ta){ ta.readOnly=true; ta.onclick=()=>{ ta.select(); if(navigator.clipboard) navigator.clipboard.writeText(ta.value); toast('已复制'); }; } },50);
+  });
+  $$('[data-sync-import]',$('#p-sync')).forEach(el=>el.onclick=()=>{
+    openSheet('粘贴数据码还原',[
+      {type:'文本域',label:'粘贴之前导出的数据码',key:'x',val:''}
+    ],v=>{
+      try{
+        const obj=JSON.parse(decodeURIComponent(escape(atob(v.x.trim()))));
+        if(!obj.settings) throw new Error();
+        syncApply(obj);
+        render(cur); closeSheet(); renderSync(); toast('数据已还原 ✓');
+      }catch(e){ toast('数据码无效'); }
+    });
   });
 }
 
 /* =============== 弹层 =============== */
 let sheetCtx=null;
-function f(type,label,key,val=''){
-  return {type,label,key,val};
+function f(type,label,key,val='',opts){
+  return {type,label,key,val,opts};
 }
 function fieldHTML(x){
   if(x.type==='文本域') return `<div class="fl">${x.label}</div><textarea class="field" data-k="${x.key}" rows="3">${esc(x.val)}</textarea>`;
@@ -1272,6 +1684,17 @@ $('#fab').onclick=()=>{
     });
   } else if(cur==='home'){
     go('todo');
+  } else if(cur==='paizhao'||cur==='video'||cur==='game'){
+    const cfg=COLLECTIONS[cur];
+    openSheet('添加条目 · '+cfg.title,[
+      f('输入框','标题（如：和父母拥抱的瞬间 / 交换戒指 / 抽奖环节）','t',''),
+      f('文本域','描述 / 细节（操作人、礼物价值、画面要求等，可留空后补）','c','')
+    ],v=>{
+      if(!v.t.trim()) return toast('请输入标题');
+      if(!Array.isArray(S[cfg.store])) S[cfg.store]=[];
+      S[cfg.store].push({id:uid(),t:v.t.trim(),text:v.c.trim(),imgs:[],links:[]});
+      save(); renderCollection(cur,cfg); closeSheet(); toast('已添加');
+    });
   } else if(cur==='makeup'){
     toast('直接在上方卡片中填写即可');
   }
@@ -1293,6 +1716,18 @@ document.addEventListener('click',e=>{
 },true);
 
 /* =============== 启动 =============== */
+// 拍照/视频/游戏清单：首次初始化或旧结构迁移
+function seedCollections(){
+  for(const pid in COLLECTIONS){
+    const cfg=COLLECTIONS[pid];
+    if(S[cfg.store]===undefined){
+      S[cfg.store]=cfg.seed.map(s=>({id:uid(),t:s.t,text:s.c,imgs:[],links:[]}));
+    } else if(!Array.isArray(S[cfg.store])){
+      S[cfg.store]=[];   // 旧版固定卡片结构，重置为空清单
+    }
+  }
+}
+seedCollections();
 buildNav();
 render('home');
 function render(id){
@@ -1303,7 +1738,13 @@ function render(id){
   else if(id==='shop') renderShop();
   else if(id==='idea') renderIdea();
   else if(id==='makeup') renderMakeup();
+  else if(id==='paizhao') renderCollection('paizhao',COLLECTIONS.paizhao);
+  else if(id==='video') renderCollection('video',COLLECTIONS.video);
+  else if(id==='game') renderCollection('game',COLLECTIONS.game);
+  else if(id==='sync') renderSync();
 }
+// 已连接共享时，启动 2 秒后静默拉取云端最新
+setTimeout(()=>{ if(S.sync&&S.sync.code) syncPull(false); },2000);
 // 跨天自动刷新
 let lastDay = todayKey();
 setInterval(()=>{ const t=todayKey(); if(t!==lastDay){ lastDay=t; todoDate=t; weekAnchor=t; calYM=t.slice(0,7); render(cur); } },60000);
