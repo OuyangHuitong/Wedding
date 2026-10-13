@@ -168,17 +168,6 @@ select.field{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg 
 .stat-foot{font-size:10.5px;color:var(--ink-3);margin-top:5px}
 
 /* ---------- Todo ---------- */
-.date-strip{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px}
-.date-chip{
-  flex:0 0 auto;min-width:52px;padding:9px 8px;border-radius:14px;background:var(--card);
-  border:1px solid var(--line);text-align:center;cursor:pointer;transition:.2s;
-}
-.date-chip .dw{font-size:10px;color:var(--ink-3);letter-spacing:.06em}
-.date-chip .dd{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:1px}
-.date-chip.active{background:var(--ink);border-color:var(--ink)}
-.date-chip.active .dw,.date-chip.active .dd{color:#fff}
-.date-chip.today:not(.active){border-color:var(--accent-2)}
-
 .check-item{
   display:flex;align-items:flex-start;gap:11px;padding:11px 2px;
   border-bottom:1px solid var(--line);transition:.2s;
@@ -254,6 +243,130 @@ select.field{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg 
 .month.open .month-body{display:block}
 .month-body .item{padding:11px 0}
 
+/* ---------- 周视图 / 月历 ---------- */
+.wk-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px}
+.wk-arrow{
+  width:34px;height:34px;flex:0 0 34px;border-radius:11px;border:1px solid var(--line);
+  background:var(--card);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--ink-2);box-shadow:var(--shadow-sm);transition:.2s;
+}
+.wk-arrow:active{transform:scale(.94);background:var(--bg-2)}
+.wk-arrow svg{width:16px;height:16px;stroke-width:1.8}
+.wk-label{flex:1;text-align:center;cursor:pointer}
+.wk-label b{font-size:14px;font-weight:600;letter-spacing:.01em}
+.wk-label span{display:block;font-size:10.5px;color:var(--ink-3);letter-spacing:.1em;margin-top:1px}
+.week{display:flex;gap:5px;margin-bottom:14px}
+.wd{
+  flex:1;min-width:0;padding:10px 2px;border-radius:14px;background:var(--card);
+  border:1px solid var(--line);text-align:center;cursor:pointer;transition:.2s;
+  box-shadow:var(--shadow-sm);position:relative;
+}
+.wd .dw{font-size:10px;color:var(--ink-3);letter-spacing:.04em}
+.wd .dd{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+.wd .dot{
+  width:4px;height:4px;border-radius:50%;background:var(--accent-2);margin:3px auto 0;
+  opacity:0;transition:.2s;
+}
+.wd.has .dot{opacity:1}
+.wd.today{border-color:var(--accent-2);background:var(--accent-soft)}
+.wd.today .dw{color:var(--accent)}
+.wd.active{background:var(--ink);border-color:var(--ink)}
+.wd.active .dw,.wd.active .dd{color:#fff}
+.wd.active .dot{background:#fff;opacity:1}
+
+.cal{display:none;background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px 12px;margin-bottom:12px;box-shadow:var(--shadow)}
+.cal.open{display:block}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 2px}
+.cal-title{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-wk{font-size:10px;color:var(--ink-3);text-align:center;padding:5px 0;letter-spacing:.04em}
+.cal-d{
+  aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border-radius:10px;font-size:12.5px;font-variant-numeric:tabular-nums;cursor:pointer;
+  color:var(--ink);transition:.15s;position:relative;gap:2px;
+}
+.cal-d.mute{color:#D8D0CB;cursor:default}
+.cal-d.today{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.cal-d.active{background:var(--ink);color:#fff;font-weight:600}
+.cal-d .cdot{width:3.5px;height:3.5px;border-radius:50%;background:var(--accent-2)}
+.cal-d.active .cdot{background:#fff}
+.cal-d.mute .cdot{background:#EDE6E2}
+.cal-leg{display:flex;gap:14px;justify-content:center;margin-top:12px;font-size:10.5px;color:var(--ink-3)}
+.cal-leg i{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent-2);margin-right:4px;vertical-align:middle}
+
+/* ---------- 阶段 ---------- */
+.stage-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;
+  background:var(--accent-soft);color:var(--accent);font-size:11.5px;font-weight:500;letter-spacing:.02em;
+}
+.stage-badge i{width:5px;height:5px;border-radius:50%;background:currentColor;display:block}
+.road{position:relative;padding-left:22px}
+.road::before{
+  content:"";position:absolute;left:6px;top:8px;bottom:8px;width:1.5px;
+  background:linear-gradient(180deg,var(--accent-2),var(--line-2));border-radius:2px;
+}
+.road-item{position:relative;margin-bottom:12px}
+.road-item:last-child{margin-bottom:0}
+.road-dot{
+  position:absolute;left:-21px;top:16px;width:11px;height:11px;border-radius:50%;
+  background:var(--card);border:2px solid var(--line-2);z-index:2;transition:.25s;
+}
+.road-item.now .road-dot{border-color:var(--accent);background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.road-item.fin .road-dot{border-color:var(--green);background:var(--green)}
+.road-card{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;
+  box-shadow:var(--shadow-sm);cursor:pointer;transition:.2s;
+}
+.road-item.now .road-card{border-color:var(--accent-2);background:linear-gradient(140deg,#FFF 0%,#FDF6F7 100%)}
+.road-top{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.road-name{font-size:14px;font-weight:600;flex:1}
+.road-when{font-size:10.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.road-tag{
+  font-size:9.5px;padding:2px 8px;border-radius:20px;letter-spacing:.05em;
+  background:var(--bg-2);color:var(--ink-3);
+}
+.road-item.now .road-tag{background:var(--accent);color:#fff}
+.road-body{display:none;border-top:1px solid var(--line);margin-top:4px;padding-top:6px}
+.road-item.open .road-body{display:block}
+.road-body .item{padding:10px 0}
+
+/* ---------- 图片 ---------- */
+.img-ph{
+  border:1.5px dashed var(--line-2);border-radius:14px;padding:22px 12px;text-align:center;
+  color:var(--ink-3);cursor:pointer;transition:.2s;font-size:12px;
+}
+.img-ph:active{background:var(--bg-2);border-color:var(--accent-2)}
+.img-ph svg{width:20px;height:20px;display:block;margin:0 auto 6px;stroke-width:1.5}
+.img-wrap{position:relative;border-radius:14px;overflow:hidden;background:var(--bg-2)}
+.img-wrap img{display:block;width:100%;border-radius:14px;cursor:pointer}
+.img-x{
+  position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:0;
+  background:rgba(44,38,36,.55);color:#fff;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;backdrop-filter:blur(4px);
+}
+.img-x svg{width:13px;height:13px;stroke-width:2}
+.idea .img-wrap{margin-bottom:10px}
+.idea.hasimg{padding:12px}
+.idea.hasimg .idea-t{margin-top:2px}
+.mk-img{margin-bottom:12px}
+.imgbtn{
+  border:1px solid var(--line-2);background:var(--card-2);border-radius:10px;color:var(--ink-2);
+  padding:6px 10px;font-size:11.5px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;transition:.2s;
+}
+.imgbtn svg{width:13px;height:13px;stroke-width:1.7}
+.imgbtn:active{transform:scale(.96);background:var(--accent-soft);color:var(--accent);border-color:var(--accent-2)}
+/* 全屏查看器 */
+.viewer{
+  position:fixed;inset:0;background:rgba(20,16,15,.94);z-index:100;display:none;
+  align-items:center;justify-content:center;flex-direction:column;padding:24px;
+}
+.viewer.on{display:flex;animation:fade .2s}
+.viewer img{max-width:100%;max-height:78vh;border-radius:12px}
+.viewer-cap{color:#B7ADA8;font-size:12px;margin-top:14px;letter-spacing:.05em}
+.viewer-hint{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 22px);color:#8A817C;font-size:11px;letter-spacing:.1em}
+
+/* ---------- fab ---------- */
 .fab{
   position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom) + 20px);
   width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;border:0;
@@ -325,6 +438,11 @@ select.field{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg 
 </button>
 
 <div class="mask" id="mask"><div class="sheet" id="sheet"></div></div>
+<div class="viewer" id="viewer">
+  <img id="viewerImg" src="" alt="">
+  <div class="viewer-cap" id="viewerCap"></div>
+  <div class="viewer-hint">点击任意位置关闭</div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -341,6 +459,39 @@ const fmtDate = s=>{const [y,m,d]=s.split('-');return `${+m}月${+d}日`;};
 const WEEK = ['日','一','二','三','四','五','六'];
 const esc = s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money = n=>'¥'+(Number(n)||0).toLocaleString('zh-CN',{maximumFractionDigits:2});
+const addDays = (d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+const parseD = s=>new Date(s+'T00:00:00');
+// 日期相差天数（b - a）
+const diffDays = (a,b)=>Math.round((parseD(b)-parseD(a))/86400000);
+
+/* =============== 备婚阶段 =============== */
+const STAGES = [
+  {id:'m12', name:'筹备启动',  when:'婚礼前 12 个月', offset:-365},
+  {id:'m6',  name:'锁定资源',  when:'婚礼前 6 个月',  offset:-180},
+  {id:'m3',  name:'细节落地',  when:'婚礼前 3 个月',  offset:-90},
+  {id:'m1',  name:'收尾冲刺',  when:'婚礼前 1 个月',  offset:-30},
+  {id:'week',name:'婚礼周',    when:'婚礼前 1 周',   offset:-7},
+  {id:'day', name:'婚礼当天',  when:'婚礼日',        offset:0}
+];
+const stageById = id=>STAGES.find(s=>s.id===id)||STAGES[0];
+// 按距婚礼剩余天数落桶（唯一权威判定）
+function stageByLeftDays(left){
+  if(left<=0) return 'day';
+  if(left<=7) return 'week';
+  if(left<=30) return 'm1';
+  if(left<=90) return 'm3';
+  if(left<=180) return 'm6';
+  return 'm12';
+}
+// 由具体日期推算阶段
+function stageOfDate(dateStr){
+  if(!dateStr) return 'm12';
+  return stageByLeftDays(diffDays(todayKey(), dateStr));
+}
+function currentStageId(){ return stageByLeftDays(Math.max(daysLeft(),0)); }
+// 每条事项的所属阶段：显式指定优先，否则按日期推算
+function progStage(p){ return p.stage || stageOfDate(p.date) || 'm12'; }
+function todoStage(t,k){ return t.stage || stageByLeftDays(diffDays(S.settings.date,k)); }
 
 /* =============== 数据层 =============== */
 const DEFAULT = ()=>{
@@ -349,15 +500,18 @@ const DEFAULT = ()=>{
     settings:{ date:'2026-05-20', couple:'我们' },
     todos:{
       [t]:[
-        {id:uid(),t:'确认婚礼日期与场地档期',done:false,cat:'场地'},
-        {id:uid(),t:'列出双方宾客初步名单',done:false,cat:'宾客'},
-        {id:uid(),t:'对比 2 家婚纱摄影风格',done:false,cat:'婚纱照'}
+        {id:uid(),t:'确认婚礼日期与场地档期',done:false,cat:'场地',stage:'m3'},
+        {id:uid(),t:'列出双方宾客初步名单',done:false,cat:'宾客',stage:'m3'},
+        {id:uid(),t:'对比 2 家婚纱摄影风格',done:false,cat:'婚纱照',stage:'m3'}
       ]
     },
     progress:[
-      {id:uid(),month:'2026-01',title:'确定婚期与预算',note:'初步锁定 5 月，总预算区间已定',done:false},
-      {id:uid(),month:'2026-03',title:'预订场地与跟妆',note:'',done:false},
-      {id:uid(),month:'2026-04',title:'礼服试穿与定稿',note:'',done:false}
+      {id:uid(),stage:'m6', date:'2026-01-15', title:'确定婚期与预算',note:'初步锁定 5 月，总预算区间已定',done:true},
+      {id:uid(),stage:'m3', date:'2026-03-10', title:'预订场地与跟妆',note:'',done:false},
+      {id:uid(),stage:'m3', date:'2026-03-20', title:'确定婚纱照拍摄档期',note:'',done:false},
+      {id:uid(),stage:'m1', date:'2026-04-20', title:'礼服试穿与定稿',note:'',done:false},
+      {id:uid(),stage:'week', date:'2026-05-14', title:'确认宾客到场与座位表',note:'',done:false},
+      {id:uid(),stage:'day', date:'2026-05-20', title:'婚礼当天流程彩排',note:'',done:false}
     ],
     costs:[
       {id:uid(),date:todayKey(),item:'场地定金',cat:'场地',amount:5000,note:'已付'},
@@ -388,6 +542,16 @@ const D = DEFAULT();
 for(const k in D) if(S[k]===undefined) S[k]=D[k];
 if(!S.makeup) S.makeup=D.makeup;
 S.todos = S.todos||{};
+// 旧数据迁移：progress 的 month -> stage + date
+if(Array.isArray(S.progress)){
+  S.progress.forEach(p=>{
+    if(p.stage===undefined || p.stage===null){
+      if(p.month){ p.stage = stageOfDate((p.month)+'-15'); p.date = p.date || ((p.month)+'-15'); }
+      else p.stage = 'm3';
+    }
+    if(!p.date) p.date = S.settings.date ? S.settings.date : todayKey();
+  });
+}
 
 let saveTimer=null;
 function save(){
@@ -397,6 +561,52 @@ function save(){
 function toast(msg){
   const el=$('#toast'); el.textContent=msg; el.classList.add('on');
   clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('on'),1600);
+}
+
+/* =============== 图片 =============== */
+// 从相册选图 → 压缩 → base64
+function pickImage(cb){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*';
+  inp.onchange=()=>{
+    const file=inp.files[0];
+    if(!file) return;
+    if(!/^image\//.test(file.type)) return toast('请选择图片文件');
+    const rd=new FileReader();
+    rd.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const MAX=900;
+        let w=img.width,h=img.height;
+        if(Math.max(w,h)>MAX){ const k=MAX/Math.max(w,h); w=Math.round(w*k); h=Math.round(h*k); }
+        const cv=document.createElement('canvas');
+        cv.width=w; cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        let data=cv.toDataURL('image/jpeg',0.72);
+        if(data.length>500000) data=cv.toDataURL('image/jpeg',0.55);   // 超大再压一档
+        cb(data);
+      };
+      img.onerror=()=>toast('图片读取失败');
+      img.src=rd.result;
+    };
+    rd.onerror=()=>toast('图片读取失败');
+    rd.readAsDataURL(file);
+  };
+  inp.click();
+}
+// 全屏查看
+function viewImage(src,cap=''){
+  $('#viewerImg').src=src;
+  $('#viewerCap').textContent=cap;
+  $('#viewer').classList.add('on');
+}
+$('#viewer').onclick=()=>$('#viewer').classList.remove('on');
+// 渲染图片块（含删除按钮）
+function imgBlock(src,delAttr,capAttr,cap=''){
+  return `<div class="img-wrap">
+    <img src="${src}" ${capAttr?`data-view="${capAttr}"`:''}>
+    <button class="img-x" ${delAttr?`data-imgdel="${delAttr}"`:''} aria-label="删除图片">${svg('imgdel')}</button>
+  </div>`;
 }
 
 /* =============== 图标 =============== */
@@ -410,6 +620,8 @@ const ICON = {
   mirror:'<circle cx="12" cy="12" r="9"/><path d="M15 9.5c0-1.9-1.6-3-3.4-3-1.9 0-3.2 1.2-3.2 2.8 0 2.6 5.2 1.8 5.2 4.2 0 1.4-1.2 2.3-2.8 2.3"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
   trash:'<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13h10l1-13"/>',
+  camera:'<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
+  imgdel:'<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>',
   edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
   close:'<path d="M6 6l12 12M18 6L6 18"/>'
 };
@@ -453,7 +665,6 @@ function todayTodos(){ const k=todayKey(); return S.todos[k]||[]; }
 function totalCost(){ return S.costs.reduce((a,c)=>a+(Number(c.amount)||0),0); }
 function shopTotal(){ return S.shopping.reduce((a,c)=>a+(Number(c.price)||0)*(Number(c.qty)||1),0); }
 function progressPct(){
-  const ms = [...new Set(S.progress.map(p=>p.month))];
   const items = S.progress;
   if(!items.length) return 0;
   return Math.round(items.filter(p=>p.done).length/items.length*100);
@@ -480,6 +691,9 @@ function renderHome(){
       <div class="hero-h">${esc(S.settings.couple)} · 距离婚礼还有</div>
       <div class="count"><b>${dl>0?dl:0}</b><span>${dl>0?'天':(dl===0?'就是今天 💍':'已圆满')}</span></div>
       <div class="hero-date">${esc(S.settings.date)} · ${WEEK[new Date(S.settings.date+'T00:00:00').getDay()]==='日'?'周日':'周'+WEEK[new Date(S.settings.date+'T00:00:00').getDay()]}</div>
+      <div style="margin-top:14px;position:relative">
+        <span class="stage-badge"><i></i>当前阶段 · ${stageById(currentStageId()).name}</span>
+      </div>
     </div>
 
     <div class="card">
@@ -544,23 +758,78 @@ function renderHome(){
   });
 }
 
-/* =============== 每日待办 =============== */
+/* =============== 每日待办（周视图 + 月历） =============== */
 let todoDate = todayKey();
+let weekAnchor = todayKey();         // 当前周内任意一天
+let calYM = todayKey().slice(0,7);   // 月历显示的月份
+let calOpen = false;
+
+function weekStart(k){
+  const d = parseD(k);
+  const off = (d.getDay()+6)%7;      // 周一为一周开始
+  return todayKey(addDays(d,-off));
+}
 function renderTodo(){
-  const t0 = new Date();
-  const days = Array.from({length:5},(_,i)=>{ const d=new Date(t0); d.setDate(d.getDate()-2+i); return d; });
   const list = S.todos[todoDate]||[];
   const doneN = list.filter(x=>x.done).length;
+  const ws = weekStart(weekAnchor);
+  const wkDays = Array.from({length:7},(_,i)=>todayKey(addDays(parseD(ws),i)));
+  const tk = todayKey();
+
+  const ws_d = parseD(ws), we_d = addDays(ws_d,6);
+  const sameMonth = ws_d.getMonth()===we_d.getMonth();
+  const rangeLabel = sameMonth
+    ? `${ws_d.getMonth()+1}月${ws_d.getDate()}日 – ${we_d.getDate()}日`
+    : `${ws_d.getMonth()+1}月${ws_d.getDate()}日 – ${we_d.getMonth()+1}月${we_d.getDate()}日`;
+
+  // 月历
+  const [cy,cm] = calYM.split('-').map(Number);
+  const first = new Date(cy,cm-1,1);
+  const lead = (first.getDay()+6)%7;
+  const dim = new Date(cy,cm,0).getDate();
+  const cells = [];
+  for(let i=0;i<lead;i++) cells.push({d:null});
+  for(let i=1;i<=dim;i++) cells.push({d:i,key:`${cy}-${String(cm).padStart(2,'0')}-${String(i).padStart(2,'0')}`});
+  while(cells.length%7) cells.push({d:null});
 
   $('#p-todo').innerHTML = `
     <div class="ptitle">每日待办</div>
     <div class="psub">Daily Checklist</div>
-    <div class="date-strip">
-      ${days.map(d=>{ const k=todayKey(d); return `<div class="date-chip${k===todoDate?' active':''}${k===todayKey()?' today':''}" data-d="${k}">
-        <div class="dw">${k===todayKey()?'今天':'周'+WEEK[d.getDay()]}</div>
-        <div class="dd">${d.getDate()}</div>
-      </div>`;}).join('')}
+
+    <div class="wk-nav">
+      <button class="wk-arrow" data-wk="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <div class="wk-label" data-cal-toggle>
+        <b>${rangeLabel}</b>
+        <span>${calOpen?'收起月历':'点击展开月历'}</span>
+      </div>
+      <button class="wk-arrow" data-wk="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
     </div>
+
+    <div class="week">
+      ${wkDays.map(k=>{ const d=parseD(k); const has=(S.todos[k]||[]).length>0;
+        return `<div class="wd${k===todoDate?' active':''}${k===tk?' today':''}${has?' has':''}" data-wd="${k}">
+          <div class="dw">${k===tk?'今':'周'+WEEK[d.getDay()]}</div>
+          <div class="dd">${d.getDate()}</div>
+          <div class="dot"></div>
+        </div>`; }).join('')}
+    </div>
+
+    <div class="cal${calOpen?' open':''}">
+      <div class="cal-head">
+        <button class="wk-arrow" data-cal="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div class="cal-title">${cy} 年 ${cm} 月</div>
+        <button class="wk-arrow" data-cal="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+      <div class="cal-grid">
+        ${['一','二','三','四','五','六','日'].map(w=>`<div class="cal-wk">${w}</div>`).join('')}
+        ${cells.map(c=>c.d===null?`<div class="cal-d mute"></div>`:
+          `<div class="cal-d${c.key===todoDate?' active':''}${c.key===tk?' today':''}" data-cd="${c.key}">
+             ${c.d}${(S.todos[c.key]||[]).length?'<div class="cdot"></div>':''}
+           </div>`).join('')}
+      </div>
+      <div class="cal-leg"><span><i></i>有安排</span><span><i style="background:var(--ink)"></i>当前选中</span></div>
+    </div>
+
     <div class="card">
       <div class="card-head">
         <div class="card-title"><i></i>${fmtDate(todoDate)}</div>
@@ -571,14 +840,36 @@ function renderTodo(){
           <div class="ci-box${t.done?' on':''}" data-tg="${t.id}">${svg('check')}</div>
           <div class="ci-body">
             <div class="ci-text">${esc(t.t)}</div>
-            <div class="ci-meta">${t.cat?`<span class="tag plain">${esc(t.cat)}</span>`:''}</div>
+            <div class="ci-meta">
+              ${t.cat?`<span class="tag plain">${esc(t.cat)}</span>`:''}
+              <span class="tag gold">${stageById(todoStage(t,todoDate)).name}</span>
+            </div>
           </div>
           <button class="icon-btn" data-tdel="${t.id}">${svg('edit')}</button>
         </div>`).join('') : `<div class="empty">这一天还没有安排<br><span style="font-size:12px">点击下方 ＋ 添加</span></div>`}
     </div>
     ${ list.length ? `<button class="btn ghost block" data-clear="${todoDate}">清空这一天的记录</button>`:'' }
   `;
-  $$('[data-d]',$('#p-todo')).forEach(el=>el.onclick=()=>{ todoDate=el.dataset.d; renderTodo(); });
+
+  $$('[data-wk]',$('#p-todo')).forEach(el=>el.onclick=()=>{
+    weekAnchor = todayKey(addDays(parseD(weekAnchor), Number(el.dataset.wk)*7));
+    todoDate = weekAnchor; calYM = todoDate.slice(0,7); renderTodo();
+  });
+  $$('[data-wd]',$('#p-todo')).forEach(el=>el.onclick=()=>{
+    todoDate = el.dataset.wd; weekAnchor = todoDate; calYM = todoDate.slice(0,7); renderTodo();
+  });
+  const ct = $('[data-cal-toggle]',$('#p-todo'));
+  if(ct) ct.onclick=()=>{ calOpen=!calOpen; renderTodo(); };
+  $$('[data-cal]',$('#p-todo')).forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const [y,m] = calYM.split('-').map(Number);
+    const d = new Date(y, m-1+Number(el.dataset.cal), 1);
+    calYM = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    renderTodo();
+  });
+  $$('[data-cd]',$('#p-todo')).forEach(el=>el.onclick=()=>{
+    todoDate = el.dataset.cd; weekAnchor = todoDate; renderTodo();
+  });
   $$('[data-tg]',$('#p-todo')).forEach(el=>el.onclick=()=>{
     const t=(S.todos[todoDate]||[]).find(x=>x.id===el.dataset.tg);
     if(t){ t.done=!t.done; save(); renderTodo(); }
@@ -588,9 +879,10 @@ function renderTodo(){
     if(!t) return;
     openSheet('编辑待办',[
       f('输入框','任务内容','t',t.t),
-      f('输入框','分类（如 场地 / 宾客）','c',t.cat||'')
+      f('输入框','分类（如 场地 / 宾客）','c',t.cat||''),
+      f('选择','阶段','s',t.stage||todoStage(t,todoDate))
     ],v=>{
-      t.t=v.t||t.t; t.cat=v.c||'';
+      t.t=v.t||t.t; t.cat=v.c||''; t.stage=v.s||t.stage;
       save(); renderTodo(); closeSheet(); toast('已更新');
     },()=>{ S.todos[todoDate]=arr.filter(x=>x.id!==t.id); save(); renderTodo(); closeSheet(); toast('已删除'); });
   });
@@ -598,59 +890,82 @@ function renderTodo(){
   if(cl) cl.onclick=()=>{ if(confirm('确定清空 '+fmtDate(todoDate)+' 的全部待办？')){ delete S.todos[todoDate]; save(); renderTodo(); toast('已清空'); } };
 }
 
-/* =============== 月度进度 =============== */
-const monthOpen = {};
+/* =============== 阶段路线图 =============== */
+const stageOpen = {};
 function renderProgress(){
-  const months = [...new Set(S.progress.map(p=>p.month))].sort();
+  const nowId = currentStageId();
+  const nowIdx = STAGES.findIndex(s=>s.id===nowId);
+
   $('#p-progress').innerHTML = `
     <div class="ptitle">备婚进度</div>
-    <div class="psub">Monthly Progress</div>
+    <div class="psub">Wedding Roadmap</div>
     <div class="card" style="display:flex;align-items:center;gap:16px">
       <div class="ring" style="flex:0 0 70px">${ringSVG(progressPct())}<div class="ring-val"><b>${progressPct()}%</b><i>总进度</i></div></div>
       <div>
-        <div style="font-size:14px;font-weight:600;margin-bottom:4px">整体完成度</div>
+        <div style="margin-bottom:6px"><span class="stage-badge"><i></i>当前 · ${stageById(nowId).name}</span></div>
         <div class="muted">共 ${S.progress.length} 个事项，已完成 ${S.progress.filter(p=>p.done).length} 个</div>
       </div>
     </div>
-    ${ months.length ? months.map(m=>{
-      const items = S.progress.filter(p=>p.month===m);
-      const dn = items.filter(p=>p.done).length;
-      const pct = Math.round(dn/items.length*100);
-      const open = monthOpen[m];
-      return `<div class="month${open?' open':''}" data-m="${m}">
-        <div class="month-head" data-mhead="${m}">
-          <div class="month-m">${m.replace('-','.')}</div>
-          <div class="month-bar"><i style="width:${pct}%"></i></div>
-          <div class="month-pct">${dn}/${items.length}</div>
-        </div>
-        <div class="month-body">
-          ${items.map(p=>`
-            <div class="item">
-              <div class="ci-box${p.done?' on':''}" data-pg="${p.id}" style="margin-top:2px">${svg('check')}</div>
-              <div class="item-body">
-                <div class="item-t" style="${p.done?'color:var(--ink-3);text-decoration:line-through':''}">${esc(p.title)}</div>
-                ${p.note?`<div class="item-s">${esc(p.note)}</div>`:''}
-              </div>
-              <button class="icon-btn" data-pedit="${p.id}">${svg('edit')}</button>
-            </div>`).join('')}
-        </div>
-      </div>`;
-    }).join('') : `<div class="card"><div class="empty">暂无进度记录<br><span style="font-size:12px">点击下方 ＋ 添加第一个月度事项</span></div></div>`}
+
+    <div class="road">
+      ${STAGES.map((s,i)=>{
+        const items = S.progress.filter(p=>progStage(p)===s.id);
+        const dn = items.filter(p=>p.done).length;
+        const isNow = s.id===nowId;
+        const isFin = i<nowIdx || (items.length>0 && dn===items.length && i<=nowIdx);
+        const open = stageOpen[s.id];
+        const d = S.settings.date? addDays(parseD(S.settings.date), s.offset) : null;
+        const dl = d? diffDays(todayKey(), todayKey(d)) : null;
+        const when = d? `${d.getMonth()+1}.${d.getDate()}` : s.when;
+        const tip = isNow ? '进行中' : (isFin? '已过' : (dl!==null? `还有 ${dl} 天` : ''));
+        return `<div class="road-item${isNow?' now':''}${isFin&&!isNow?' fin':''}${open?' open':''}">
+          <div class="road-dot"></div>
+          <div class="road-card" data-sh="${s.id}">
+            <div class="road-top">
+              <div class="road-name">${s.name}</div>
+              ${isNow?`<span class="road-tag">当前</span>`:''}
+              <div class="road-when">${when}</div>
+            </div>
+            <div class="row" style="gap:10px;align-items:center">
+              <div class="month-bar"><i style="width:${items.length?Math.round(dn/items.length*100):0}%"></i></div>
+              <div class="month-pct">${dn}/${items.length}</div>
+            </div>
+            ${tip?`<div class="muted" style="font-size:10.5px;margin-top:7px">${tip}</div>`:''}
+          </div>
+          <div class="road-body">
+            ${items.length? items.map(p=>`
+              <div class="item">
+                <div class="ci-box${p.done?' on':''}" data-pg="${p.id}" style="margin-top:2px">${svg('check')}</div>
+                <div class="item-body">
+                  <div class="item-t" style="${p.done?'color:var(--ink-3);text-decoration:line-through':''}">${esc(p.title)}</div>
+                  <div class="item-s">${p.date?fmtDate(p.date):''}${p.note?` · ${esc(p.note)}`:''}</div>
+                </div>
+                <button class="icon-btn" data-pedit="${p.id}">${svg('edit')}</button>
+              </div>`).join('')
+            : `<div class="empty" style="padding:14px 0;font-size:12.5px">这个阶段还没有事项</div>`}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
   `;
-  $$('[data-mhead]',$('#p-progress')).forEach(el=>el.onclick=()=>{
-    const m=el.dataset.mhead; monthOpen[m]=!monthOpen[m]; renderProgress();
+  $$('[data-sh]',$('#p-progress')).forEach(el=>el.onclick=e=>{
+    if(e.target.closest('[data-pg]')||e.target.closest('[data-pedit]')) return;
+    const id=el.dataset.sh; stageOpen[id]=!stageOpen[id]; renderProgress();
   });
-  $$('[data-pg]',$('#p-progress')).forEach(el=>el.onclick=()=>{
+  $$('[data-pg]',$('#p-progress')).forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
     const p=S.progress.find(x=>x.id===el.dataset.pg); if(p){ p.done=!p.done; save(); renderProgress(); }
   });
   $$('[data-pedit]',$('#p-progress')).forEach(el=>el.onclick=e=>{
     e.stopPropagation();
     const p=S.progress.find(x=>x.id===el.dataset.pedit); if(!p) return;
     openSheet('编辑进度',[
-      f('月份','月份','m',p.month),
+      f('选择','所属阶段','s',progStage(p)),
+      f('日期','计划日期','d',p.date||S.settings.date),
       f('输入框','事项标题','t',p.title),
       f('文本域','备注 / 进展说明','n',p.note||'')
-    ],v=>{ p.month=v.m||p.month; p.title=v.t||p.title; p.note=v.n||''; save(); renderProgress(); closeSheet(); toast('已更新'); },
+    ],v=>{ p.stage=v.s||progStage(p); p.date=v.d||p.date; p.title=v.t||p.title; p.note=v.n||'';
+      save(); renderProgress(); closeSheet(); toast('已更新'); },
       ()=>{ S.progress=S.progress.filter(x=>x.id!==p.id); save(); renderProgress(); closeSheet(); toast('已删除'); });
   });
 }
@@ -769,13 +1084,32 @@ function renderIdea(){
     <div class="ptitle">创意灵感</div>
     <div class="psub">Inspiration</div>
     ${ S.ideas.length ? `<div class="ideas">${S.ideas.map(i=>`
-      <div class="idea">
-        <button class="icon-btn idea-del" data-iedit="${i.id}">${svg('edit')}</button>
+      <div class="idea${i.img?' hasimg':''}">
+        ${i.img?imgBlock(i.img,'idea:'+i.id,'idea:'+esc(i.title),esc(i.title)):''}
         <div class="idea-t">${esc(i.title)}</div>
         <div class="idea-c">${esc(i.content)}</div>
+        <div class="row" style="margin-top:10px;gap:6px">
+          <button class="imgbtn" data-iimg="${i.id}">${svg('camera')}${i.img?'换图':'添加图片'}</button>
+          <button class="imgbtn" data-iedit="${i.id}">${svg('edit')}编辑</button>
+        </div>
       </div>`).join('')}</div>`
     : `<div class="card"><div class="empty">还没有灵感<br><span style="font-size:12px">点击下方 ＋ 记录一个想法</span></div></div>`}
   `;
+  $$('[data-iimg]',$('#p-idea')).forEach(el=>el.onclick=()=>{
+    const i=S.ideas.find(x=>x.id===el.dataset.iimg); if(!i) return;
+    pickImage(d=>{ i.img=d; save(); renderIdea(); toast('图片已添加'); });
+  });
+  $$('[data-imgdel]',$('#p-idea')).forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const [_,id]=el.dataset.imgdel.split(':');
+    const i=S.ideas.find(x=>x.id===id); if(!i) return;
+    if(confirm('删除这张图片？')){ i.img=''; save(); renderIdea(); toast('图片已删除'); }
+  });
+  $$('[data-view]',$('#p-idea')).forEach(el=>el.onclick=e=>{
+    if(e.target.closest('.img-x')) return;
+    const v=el.dataset.view;
+    viewImage(el.src, v.slice(v.indexOf(':')+1));
+  });
   $$('[data-iedit]',$('#p-idea')).forEach(el=>el.onclick=()=>{
     const i=S.ideas.find(x=>x.id===el.dataset.iedit); if(!i) return;
     openSheet('编辑灵感',[
@@ -804,6 +1138,9 @@ function renderMakeup(){
           <div class="mk-dot" style="background:${l.c}"></div>
           <div class="grow"><div class="mk-name">${l.n}</div><div class="mk-en">${l.en}</div></div>
         </div>
+        ${ d.img
+          ? `<div class="mk-img">${imgBlock(d.img,'mk:'+l.k,'mk:'+esc(l.n),esc(l.n)+' · 参考图')}</div>`
+          : `<div class="img-ph mk-img" data-mkimg="${l.k}">${svg('camera')}添加${l.n}参考图</div>`}
         <div class="mk-grid">
           ${l.fields.map(([k,label])=>`
             <div class="mk-field">
@@ -814,6 +1151,20 @@ function renderMakeup(){
       </div>`;
     }).join('')}
   `;
+  $$('[data-mkimg]',$('#p-makeup')).forEach(el=>el.onclick=()=>{
+    const k=el.dataset.mkimg;
+    pickImage(d=>{ S.makeup[k]=S.makeup[k]||{}; S.makeup[k].img=d; save(); renderMakeup(); toast('参考图已添加'); });
+  });
+  $$('[data-imgdel]',$('#p-makeup')).forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const [_,k]=el.dataset.imgdel.split(':');
+    if(confirm('删除这张参考图？')){ S.makeup[k].img=''; save(); renderMakeup(); toast('已删除'); }
+  });
+  $$('[data-view]',$('#p-makeup')).forEach(el=>el.onclick=e=>{
+    if(e.target.closest('.img-x')) return;
+    const v=el.dataset.view;
+    viewImage(el.src, v.slice(v.indexOf(':')+1)+' · 参考图');
+  });
   $$('[data-mk]',$('#p-makeup')).forEach(el=>el.oninput=()=>{
     const [look,key]=el.dataset.mk.split('.');
     S.makeup[look]=S.makeup[look]||{};
@@ -832,6 +1183,12 @@ function fieldHTML(x){
   if(x.type==='日期') return `<div class="fl">${x.label}</div><input class="field" type="date" data-k="${x.key}" value="${esc(x.val||todayKey())}">`;
   if(x.type==='数字') return `<div class="fl">${x.label}</div><input class="field" type="number" inputmode="decimal" data-k="${x.key}" value="${esc(x.val??'')}">`;
   if(x.type==='月份') return `<div class="fl">${x.label}</div><input class="field" type="month" data-k="${x.key}" value="${esc(x.val||todayKey().slice(0,7))}">`;
+  if(x.type==='选择'){
+    const opts = x.opts || STAGES.map(s=>[s.id,s.name+' · '+s.when]);
+    return `<div class="fl">${x.label}</div><select class="field" data-k="${x.key}">
+      ${opts.map(([v,l])=>`<option value="${esc(v)}"${String(v)===String(x.val)?' selected':''}>${esc(l)}</option>`).join('')}
+    </select>`;
+  }
   return `<div class="fl">${x.label}</div><input class="field" data-k="${x.key}" value="${esc(x.val??'')}">`;
 }
 function openSheet(title,fields,onOk,onDel){
@@ -861,22 +1218,24 @@ $('#fab').onclick=()=>{
   if(cur==='todo'){
     openSheet('添加待办',[
       f('输入框','任务内容','t',''),
-      f('输入框','分类（选填）','c','')
+      f('输入框','分类（选填）','c',''),
+      f('选择','所属阶段','s',todoStage({},todoDate))
     ],v=>{
       if(!v.t.trim()) return toast('请输入内容');
       S.todos[todoDate]=S.todos[todoDate]||[];
-      S.todos[todoDate].push({id:uid(),t:v.t.trim(),done:false,cat:v.c.trim()});
+      S.todos[todoDate].push({id:uid(),t:v.t.trim(),done:false,cat:v.c.trim(),stage:v.s});
       save(); renderTodo(); closeSheet(); toast('已添加');
     });
   } else if(cur==='progress'){
     openSheet('添加进度事项',[
-      f('月份','月份','m',todayKey().slice(0,7)),
+      f('选择','所属阶段','s',currentStageId()),
+      f('日期','计划日期','d',S.settings.date||todayKey()),
       f('输入框','事项标题','t',''),
       f('文本域','备注 / 进展说明','n','')
     ],v=>{
       if(!v.t.trim()) return toast('请输入标题');
-      S.progress.push({id:uid(),month:v.m||todayKey().slice(0,7),title:v.t.trim(),note:v.n.trim(),done:false});
-      monthOpen[v.m]=true; save(); renderProgress(); closeSheet(); toast('已添加');
+      S.progress.push({id:uid(),stage:v.s||currentStageId(),date:v.d||todayKey(),title:v.t.trim(),note:v.n.trim(),done:false});
+      stageOpen[v.s]=true; save(); renderProgress(); closeSheet(); toast('已添加');
     });
   } else if(cur==='cost'){
     openSheet('记一笔开销',[
@@ -947,7 +1306,7 @@ function render(id){
 }
 // 跨天自动刷新
 let lastDay = todayKey();
-setInterval(()=>{ const t=todayKey(); if(t!==lastDay){ lastDay=t; todoDate=t; render(cur); } },60000);
+setInterval(()=>{ const t=todayKey(); if(t!==lastDay){ lastDay=t; todoDate=t; weekAnchor=t; calYM=t.slice(0,7); render(cur); } },60000);
 // 防止双击缩放
 document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
 </script>
