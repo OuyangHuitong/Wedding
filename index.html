@@ -1437,11 +1437,30 @@ function syncApply(remote){
 function b64u(str){ return btoa(unescape(encodeURIComponent(str))); }
 
 /* ---- GitHub 通道 ---- */
-function ghDataURL(){
+function ghDataURLs(){
+  // Pages 网址区分大小写：同时尝试 原样 / 仓库首字母大写 / 全小写 三种组合，避免配对串大小写不一致导致 404
   const [u,rest]=S.sync.repo.split('/');
-  return (rest===u+'.github.io'||rest===undefined)
-    ? `https://${u}.github.io/${SYNC_FILE}`
-    : `https://${u}.github.io/${rest}/${SYNC_FILE}`;
+  const ru=S.sync.repo.split('/')[1];
+  if(rest===undefined||rest===u+'.github.io')
+    return [`https://${u.toLowerCase()}.github.io/${SYNC_FILE}`];
+  const variants=[rest, rest.charAt(0).toUpperCase()+rest.slice(1), rest.toLowerCase()];
+  const seen={}, list=[];
+  variants.forEach(v=>{ const url=`https://${u.toLowerCase()}.github.io/${v}/${SYNC_FILE}`; if(!seen[url]){ seen[url]=1; list.push(url); } });
+  return list;
+}
+function ghDataURL(){ return ghDataURLs()[0]; }
+async function ghFetchData(){
+  let last=null;
+  for(const url of ghDataURLs()){
+    try{
+      const r=await fetch(url+'?t='+Date.now(),{cache:'no-store'});
+      if(!r.ok){ last=new Error('HTTP '+r.status); continue; }
+      const remote=await r.json();
+      if(remote&&remote.settings) return remote;
+      last=new Error('bad');
+    }catch(e){ last=e; }
+  }
+  throw last||new Error('404');
 }
 function ghAPI(path,opt={}){
   return apiJSON('https://api.github.com/repos/'+S.sync.repo+'/contents/'+path,{
@@ -1526,10 +1545,8 @@ async function syncPull(force){
   try{
     let remote;
     if(S.sync.mode==='gh'){
-      // 走你自己的 Pages 域名拉取（国内可访问，无需令牌）
-      const r=await fetch(ghDataURL()+'?t='+Date.now(),{cache:'no-store'});
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      remote=await r.json();
+      // 走你自己的 Pages 域名拉取（国内可访问，无需令牌），自动尝试大小写组合
+      remote=await ghFetchData();
     }else{
       const r=await apiJSON(SYNC_API+'/'+S.sync.code,{headers:{'Accept':'application/json'}});
       remote=await r.json();
@@ -1644,15 +1661,12 @@ function renderSync(){
       if(!token) return toast('配对串格式不对：缺少令牌部分（| 后面的内容）');
       S.sync={mode:'gh',code:'',repo:repo,token:token,ts:0};
       let remote=null;
-      // ① 先拉数据（走 github.io，能打开网站就能拉到）
+      // ① 先拉数据（走 github.io，能打开网站就能拉到；自动尝试仓库大小写组合）
       try{
-        const r=await fetch(ghDataURL()+'?t='+Date.now(),{cache:'no-store'});
-        if(!r.ok) throw new Error('HTTP '+r.status);
-        remote=await r.json();
-        if(!remote||!remote.settings) throw new Error('bad');
+        remote=await ghFetchData();
       }catch(e){
         S.sync={mode:'',code:'',repo:'',token:'',ts:0};
-        return toast('拉取失败：请确认配对串完整复制（从仓库名到令牌结尾），或对方刚推送请过几分钟再试');
+        return toast('拉取失败：请确认配对串完整复制（从仓库名到令牌结尾）；也请对方确认已点"立即推送"，或过几分钟再试');
       }
       // ② 数据到手，加入成功
       syncApply(remote);
