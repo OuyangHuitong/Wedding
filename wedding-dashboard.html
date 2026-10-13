@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<title>备婚工作台</title>
+<meta name="theme-color" content="#FBF7F4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="备婚">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRkZGNUY3Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjRjVFMEU2Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIHJ4PSI0NCIgZmlsbD0idXJsKCNnKSIvPjxwYXRoIGQ9Ik05MCAxMjhDNzAgMTEyIDUwIDEwMCA1MCA4MkE2MCA2MCAwIDAgMSA5MCAzMEE2MCA2MCAwIDAgMSAxMzAgODJjMCAxOC0yMCAzMC00MCA0NnoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsOCkgc2NhbGUoMC42OCkgdHJhbnNsYXRlKDI3LC0xMikiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0MwN0Q4QSIgc3Ryb2tlLXdpZHRoPSI5IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRkZGNUY3Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjRjVFMEU2Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIHJ4PSI0NCIgZmlsbD0idXJsKCNnKSIvPjxwYXRoIGQ9Ik05MCAxMjhDNzAgMTEyIDUwIDEwMCA1MCA4MkE2MCA2MCAwIDAgMSA5MCAzMEE2MCA2MCAwIDAgMSAxMzAgODJjMCAxOC0yMCAzMC00MCA0NnoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsOCkgc2NhbGUoMC42OCkgdHJhbnNsYXRlKDI3LC0xMikiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0MwN0Q4QSIgc3Ryb2tlLXdpZHRoPSI5IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+">
+<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22%E5%A4%87%E5%A9%9A%E5%B7%A5%E4%BD%9C%E5%8F%B0%22%2C%22short_name%22%3A%22%E5%A4%87%E5%A9%9A%22%2C%22start_url%22%3A%22.%22%2C%22scope%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22orientation%22%3A%22portrait%22%2C%22background_color%22%3A%22%23FBF7F4%22%2C%22theme_color%22%3A%22%23FBF7F4%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCI%2BPGRlZnM%2BPGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI%2BPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRkZGNUY3Ii8%2BPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjRjVFMEU2Ii8%2BPC9saW5lYXJHcmFkaWVudD48L2RlZnM%2BPHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIHJ4PSI0NCIgZmlsbD0idXJsKCNnKSIvPjxwYXRoIGQ9Ik05MCAxMjhDNzAgMTEyIDUwIDEwMCA1MCA4MkE2MCA2MCAwIDAgMSA5MCAzMEE2MCA2MCAwIDAgMSAxMzAgODJjMCAxOC0yMCAzMC00MCA0NnoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsOCkgc2NhbGUoMC42OCkgdHJhbnNsYXRlKDI3LC0xMikiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0MwN0Q4QSIgc3Ryb2tlLXdpZHRoPSI5IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8%2BPC9zdmc%2B%22%2C%22sizes%22%3A%22180x180%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
+<style>
+:root{
+  --bg:#FBF7F4;
+  --bg-2:#F4EDE8;
+  --card:#FFFFFF;
+  --card-2:#FDFAF8;
+  --ink:#2C2624;
+  --ink-2:#6B615C;
+  --ink-3:#A79E99;
+  --line:#EFE7E1;
+  --line-2:#E6DBD4;
+  --accent:#C07D8A;
+  --accent-2:#D9A3AC;
+  --accent-soft:#F9EDEF;
+  --gold:#C2A387;
+  --gold-soft:#F7F1E8;
+  --green:#7C9C86;
+  --green-soft:#EEF5F0;
+  --shadow:0 1px 2px rgba(90,70,64,.04), 0 8px 24px -12px rgba(90,70,64,.14);
+  --shadow-sm:0 1px 2px rgba(90,70,64,.05);
+  --r:18px;
+  --r-sm:12px;
+  --nav:78px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"HarmonyOS Sans SC","PingFang SC","Noto Sans SC","Helvetica Neue",sans-serif;
+  background:var(--bg);color:var(--ink);
+  font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+input,textarea,select,button{font-family:inherit;font-size:inherit;color:inherit}
+::-webkit-scrollbar{width:0;height:0}
+
+/* ---------- 布局 ---------- */
+.app{display:flex;height:100vh;height:100dvh;overflow:hidden}
+.nav{
+  width:var(--nav);flex:0 0 var(--nav);
+  background:linear-gradient(180deg,#FFFFFF 0%,#FDF9F7 100%);
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;
+  padding:calc(env(safe-area-inset-top) + 14px) 0 calc(env(safe-area-inset-bottom) + 10px);
+  gap:4px;overflow-y:auto;overflow-x:hidden;
+}
+.brand{
+  font-size:10px;letter-spacing:.28em;color:var(--accent);
+  font-weight:600;writing-mode:vertical-rl;text-orientation:mixed;
+  margin-bottom:12px;opacity:.85;
+}
+.nav-item{
+  width:58px;padding:9px 2px;border-radius:14px;border:0;background:transparent;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  color:var(--ink-3);cursor:pointer;transition:.22s ease;position:relative;
+}
+.nav-item svg{width:19px;height:19px;stroke-width:1.6}
+.nav-item span{font-size:9.5px;letter-spacing:.02em;white-space:nowrap;transform:scale(.94)}
+.nav-item:active{transform:scale(.94)}
+.nav-item.active{background:var(--accent-soft);color:var(--accent)}
+.nav-item.active::before{
+  content:"";position:absolute;left:-14px;top:50%;transform:translateY(-50%);
+  width:3px;height:20px;border-radius:0 3px 3px 0;background:var(--accent);
+}
+.nav-sep{width:26px;height:1px;background:var(--line);margin:6px 0}
+
+/* ---------- 主区 ---------- */
+.main{flex:1;min-width:0;position:relative;overflow:hidden}
+.page{
+  position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 40px);
+  display:none;animation:fade .28s ease;
+}
+.page.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.ptitle{font-size:22px;font-weight:600;letter-spacing:.01em;margin:2px 0 2px}
+.psub{font-size:11.5px;color:var(--ink-3);letter-spacing:.14em;text-transform:uppercase;margin-bottom:18px}
+
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:16px;margin-bottom:12px;box-shadow:var(--shadow);
+}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px}
+.card-title{font-size:13.5px;font-weight:600;letter-spacing:.02em;display:flex;align-items:center;gap:7px}
+.card-title i{width:5px;height:5px;border-radius:50%;background:var(--accent-2);display:block}
+.muted{color:var(--ink-3);font-size:12px}
+.empty{color:var(--ink-3);font-size:13px;text-align:center;padding:22px 0}
+
+/* 按钮 */
+.btn{
+  border:0;border-radius:11px;padding:10px 16px;background:var(--accent);color:#fff;
+  font-size:13.5px;font-weight:500;cursor:pointer;transition:.2s;letter-spacing:.02em;
+}
+.btn:active{transform:scale(.97);opacity:.9}
+.btn.ghost{background:var(--card-2);color:var(--ink-2);border:1px solid var(--line-2)}
+.btn.sm{padding:7px 12px;font-size:12.5px;border-radius:10px}
+.btn.tiny{padding:5px 10px;font-size:11.5px;border-radius:9px;font-weight:400}
+.btn.block{width:100%}
+.icon-btn{
+  border:0;background:transparent;color:var(--ink-3);cursor:pointer;padding:6px;
+  border-radius:9px;display:flex;transition:.2s;line-height:0;
+}
+.icon-btn:active{background:var(--bg-2)}
+.icon-btn svg{width:16px;height:16px;stroke-width:1.6}
+.icon-btn.danger:active{color:#C25E5E;background:#FBEFEF}
+
+/* 输入 */
+.field{
+  width:100%;border:1px solid var(--line-2);border-radius:12px;padding:11px 13px;
+  background:var(--card-2);outline:none;transition:.2s;font-size:14px;color:var(--ink);
+}
+.field:focus{border-color:var(--accent-2);background:#fff;box-shadow:0 0 0 3px var(--accent-soft)}
+.field::placeholder{color:var(--ink-3)}
+textarea.field{resize:vertical;min-height:64px;line-height:1.6}
+select.field{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23A79E99' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+.row{display:flex;gap:8px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+
+/* ---------- 首页 ---------- */
+.hero{
+  background:linear-gradient(140deg,#FFFFFF 0%,#FDF6F7 55%,#F7EFEA 100%);
+  border:1px solid var(--line);border-radius:22px;padding:22px 18px;margin-bottom:12px;
+  box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.hero::after{
+  content:"";position:absolute;right:-34px;top:-34px;width:130px;height:130px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, rgba(217,163,172,.22), transparent 68%);
+}
+.hero-label{font-size:10.5px;letter-spacing:.3em;color:var(--accent);text-transform:uppercase;margin-bottom:8px}
+.hero-h{font-size:21px;font-weight:600;letter-spacing:.01em;margin-bottom:12px;position:relative}
+.count{display:flex;align-items:baseline;gap:8px;position:relative}
+.count b{font-size:46px;font-weight:300;letter-spacing:-.02em;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.count span{font-size:12.5px;color:var(--ink-2)}
+.hero-date{font-size:12px;color:var(--ink-3);margin-top:10px;position:relative}
+
+.ring-wrap{display:flex;align-items:center;gap:14px}
+.ring{position:relative;width:70px;height:70px;flex:0 0 70px}
+.ring svg{transform:rotate(-90deg)}
+.ring-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-val b{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent)}
+.ring-val i{font-size:9px;color:var(--ink-3);font-style:normal;letter-spacing:.06em}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;
+  box-shadow:var(--shadow-sm);cursor:pointer;transition:.2s;
+}
+.stat:active{transform:scale(.985);background:var(--card-2)}
+.stat-label{font-size:10.5px;color:var(--ink-3);letter-spacing:.08em;margin-bottom:6px}
+.stat-val{font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em;display:flex;align-items:baseline;gap:3px}
+.stat-val em{font-size:11px;font-weight:400;color:var(--ink-3);font-style:normal}
+.stat-foot{font-size:10.5px;color:var(--ink-3);margin-top:5px}
+
+/* ---------- Todo ---------- */
+.check-item{
+  display:flex;align-items:flex-start;gap:11px;padding:11px 2px;
+  border-bottom:1px solid var(--line);transition:.2s;
+}
+.check-item:last-child{border-bottom:0}
+.check-item.done .ci-text{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--line-2)}
+.ci-box{
+  width:20px;height:20px;flex:0 0 20px;border-radius:7px;border:1.5px solid var(--line-2);
+  margin-top:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;
+}
+.ci-box svg{width:12px;height:12px;stroke:#fff;stroke-width:2.6;opacity:0;transform:scale(.6);transition:.2s}
+.ci-box.on{background:var(--accent);border-color:var(--accent)}
+.ci-box.on svg{opacity:1;transform:scale(1)}
+.ci-body{flex:1;min-width:0}
+.ci-text{font-size:14px;word-break:break-word}
+.ci-meta{font-size:10.5px;color:var(--ink-3);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
+.tag{
+  display:inline-block;padding:1.5px 8px;border-radius:20px;font-size:10px;letter-spacing:.03em;
+  background:var(--accent-soft);color:var(--accent);
+}
+.tag.gold{background:var(--gold-soft);color:var(--gold)}
+.tag.green{background:var(--green-soft);color:var(--green)}
+.tag.plain{background:var(--bg-2);color:var(--ink-3)}
+
+/* ---------- 通用列表条 ---------- */
+.item{
+  display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);
+}
+.item:last-child{border-bottom:0}
+.item-body{flex:1;min-width:0}
+.item-t{font-size:14px;font-weight:500;word-break:break-word}
+.item-s{font-size:11.5px;color:var(--ink-3);margin-top:3px;line-height:1.5;word-break:break-word;white-space:pre-wrap}
+.amount{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);white-space:nowrap}
+.amount.grey{color:var(--ink-2)}
+
+/* ---------- 灵感卡片 ---------- */
+.ideas{columns:2;column-gap:10px}
+.idea{
+  break-inside:avoid;background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:14px;margin-bottom:10px;box-shadow:var(--shadow-sm);position:relative;
+}
+.idea-t{font-size:13.5px;font-weight:600;margin-bottom:6px;padding-right:20px;word-break:break-word}
+.idea-c{font-size:12.5px;color:var(--ink-2);line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.idea .icon-btn{position:absolute;top:8px;right:8px}
+.idea-del{opacity:.5}
+
+/* ---------- 妆容 ---------- */
+.mk-card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:16px;margin-bottom:12px;box-shadow:var(--shadow);
+}
+.mk-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.mk-dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px}
+.mk-name{font-size:15px;font-weight:600}
+.mk-en{font-size:10px;color:var(--ink-3);letter-spacing:.18em;text-transform:uppercase;margin-top:1px}
+.mk-grid{display:flex;flex-direction:column;gap:10px}
+.mk-field label{font-size:10.5px;color:var(--ink-3);letter-spacing:.08em;display:block;margin-bottom:4px}
+.mk-field .field{padding:9px 12px;font-size:13px}
+
+/* ---------- 进度 ---------- */
+.month{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow-sm);
+}
+.month-head{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;
+}
+.month-m{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;min-width:62px}
+.month-bar{flex:1;height:5px;border-radius:5px;background:var(--bg-2);overflow:hidden}
+.month-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent-2),var(--accent));border-radius:5px;transition:.4s}
+.month-pct{font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+.month-body{display:none;padding:0 16px 14px;border-top:1px solid var(--line)}
+.month.open .month-body{display:block}
+.month-body .item{padding:11px 0}
+
+/* ---------- 周视图 / 月历 ---------- */
+.wk-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px}
+.wk-arrow{
+  width:34px;height:34px;flex:0 0 34px;border-radius:11px;border:1px solid var(--line);
+  background:var(--card);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--ink-2);box-shadow:var(--shadow-sm);transition:.2s;
+}
+.wk-arrow:active{transform:scale(.94);background:var(--bg-2)}
+.wk-arrow svg{width:16px;height:16px;stroke-width:1.8}
+.wk-label{flex:1;text-align:center;cursor:pointer}
+.wk-label b{font-size:14px;font-weight:600;letter-spacing:.01em}
+.wk-label span{display:block;font-size:10.5px;color:var(--ink-3);letter-spacing:.1em;margin-top:1px}
+.week{display:flex;gap:5px;margin-bottom:14px}
+.wd{
+  flex:1;min-width:0;padding:10px 2px;border-radius:14px;background:var(--card);
+  border:1px solid var(--line);text-align:center;cursor:pointer;transition:.2s;
+  box-shadow:var(--shadow-sm);position:relative;
+}
+.wd .dw{font-size:10px;color:var(--ink-3);letter-spacing:.04em}
+.wd .dd{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+.wd .dot{
+  width:4px;height:4px;border-radius:50%;background:var(--accent-2);margin:3px auto 0;
+  opacity:0;transition:.2s;
+}
+.wd.has .dot{opacity:1}
+.wd.today{border-color:var(--accent-2);background:var(--accent-soft)}
+.wd.today .dw{color:var(--accent)}
+.wd.active{background:var(--ink);border-color:var(--ink)}
+.wd.active .dw,.wd.active .dd{color:#fff}
+.wd.active .dot{background:#fff;opacity:1}
+
+.cal{display:none;background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px 12px;margin-bottom:12px;box-shadow:var(--shadow)}
+.cal.open{display:block}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 2px}
+.cal-title{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-wk{font-size:10px;color:var(--ink-3);text-align:center;padding:5px 0;letter-spacing:.04em}
+.cal-d{
+  aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border-radius:10px;font-size:12.5px;font-variant-numeric:tabular-nums;cursor:pointer;
+  color:var(--ink);transition:.15s;position:relative;gap:2px;
+}
+.cal-d.mute{color:#D8D0CB;cursor:default}
+.cal-d.today{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.cal-d.active{background:var(--ink);color:#fff;font-weight:600}
+.cal-d .cdot{width:3.5px;height:3.5px;border-radius:50%;background:var(--accent-2)}
+.cal-d.active .cdot{background:#fff}
+.cal-d.mute .cdot{background:#EDE6E2}
+.cal-leg{display:flex;gap:14px;justify-content:center;margin-top:12px;font-size:10.5px;color:var(--ink-3)}
+.cal-leg i{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent-2);margin-right:4px;vertical-align:middle}
+
+/* ---------- 阶段 ---------- */
+.stage-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;
+  background:var(--accent-soft);color:var(--accent);font-size:11.5px;font-weight:500;letter-spacing:.02em;
+}
+.stage-badge i{width:5px;height:5px;border-radius:50%;background:currentColor;display:block}
+.road{position:relative;padding-left:22px}
+.road::before{
+  content:"";position:absolute;left:6px;top:8px;bottom:8px;width:1.5px;
+  background:linear-gradient(180deg,var(--accent-2),var(--line-2));border-radius:2px;
+}
+.road-item{position:relative;margin-bottom:12px}
+.road-item:last-child{margin-bottom:0}
+.road-dot{
+  position:absolute;left:-21px;top:16px;width:11px;height:11px;border-radius:50%;
+  background:var(--card);border:2px solid var(--line-2);z-index:2;transition:.25s;
+}
+.road-item.now .road-dot{border-color:var(--accent);background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.road-item.fin .road-dot{border-color:var(--green);background:var(--green)}
+.road-card{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;
+  box-shadow:var(--shadow-sm);cursor:pointer;transition:.2s;
+}
+.road-item.now .road-card{border-color:var(--accent-2);background:linear-gradient(140deg,#FFF 0%,#FDF6F7 100%)}
+.road-top{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.road-name{font-size:14px;font-weight:600;flex:1}
+.road-when{font-size:10.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.road-tag{
+  font-size:9.5px;padding:2px 8px;border-radius:20px;letter-spacing:.05em;
+  background:var(--bg-2);color:var(--ink-3);
+}
+.road-item.now .road-tag{background:var(--accent);color:#fff}
+.road-body{display:none;border-top:1px solid var(--line);margin-top:4px;padding-top:6px}
+.road-item.open .road-body{display:block}
+.road-body .item{padding:10px 0}
+
+/* ---------- 图片 ---------- */
+.img-ph{
+  border:1.5px dashed var(--line-2);border-radius:14px;padding:22px 12px;text-align:center;
+  color:var(--ink-3);cursor:pointer;transition:.2s;font-size:12px;
+}
+.img-ph:active{background:var(--bg-2);border-color:var(--accent-2)}
+.img-ph svg{width:20px;height:20px;display:block;margin:0 auto 6px;stroke-width:1.5}
+.img-wrap{position:relative;border-radius:14px;overflow:hidden;background:var(--bg-2)}
+.img-wrap img{display:block;width:100%;border-radius:14px;cursor:pointer}
+.img-x{
+  position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:0;
+  background:rgba(44,38,36,.55);color:#fff;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;backdrop-filter:blur(4px);
+}
+.img-x svg{width:13px;height:13px;stroke-width:2}
+.idea .img-wrap{margin-bottom:10px}
+.idea.hasimg{padding:12px}
+.idea.hasimg .idea-t{margin-top:2px}
+.mk-img{margin-bottom:12px}
+.imgbtn{
+  border:1px solid var(--line-2);background:var(--card-2);border-radius:10px;color:var(--ink-2);
+  padding:6px 10px;font-size:11.5px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;transition:.2s;
+}
+.imgbtn svg{width:13px;height:13px;stroke-width:1.7}
+.imgbtn:active{transform:scale(.96);background:var(--accent-soft);color:var(--accent);border-color:var(--accent-2)}
+/* 全屏查看器 */
+.viewer{
+  position:fixed;inset:0;background:rgba(20,16,15,.94);z-index:100;display:none;
+  align-items:center;justify-content:center;flex-direction:column;padding:24px;
+}
+.viewer.on{display:flex;animation:fade .2s}
+.viewer img{max-width:100%;max-height:78vh;border-radius:12px}
+.viewer-cap{color:#B7ADA8;font-size:12px;margin-top:14px;letter-spacing:.05em}
+.viewer-hint{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 22px);color:#8A817C;font-size:11px;letter-spacing:.1em}
+
+/* ---------- 同步 ---------- */
+.code-show{
+  background:var(--ink);color:#fff;border-radius:16px;padding:20px;text-align:center;margin-bottom:12px;
+}
+.code-show .cc{font-size:30px;font-weight:600;letter-spacing:.12em;font-family:ui-monospace,Menlo,monospace;word-break:break-all;line-height:1.3}
+.code-show .cl{font-size:10.5px;color:#B7ADA8;letter-spacing:.2em;margin-top:8px}
+.sync-ok{color:var(--green);font-size:12px}
+.sync-list li{font-size:13px;color:var(--ink-2)}
+.ta{
+  width:100%;border:1px solid var(--line-2);border-radius:12px;padding:10px 12px;background:var(--card-2);
+  font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--ink);outline:none;resize:none;height:90px;
+}
+.ta:focus{border-color:var(--accent-2);background:#fff}
+
+/* 多图网格 */
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.mg-add{
+  aspect-ratio:1;border:1.5px dashed var(--line-2);border-radius:11px;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;color:var(--ink-3);
+  cursor:pointer;font-size:9.5px;gap:3px;transition:.2s;background:var(--card-2);
+}
+.mg-add svg{width:15px;height:15px;stroke-width:1.6}
+.mg-add:active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-2)}
+.mg-cell{position:relative;aspect-ratio:1;border-radius:11px;overflow:hidden;background:var(--bg-2)}
+.mg-cell img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer}
+.mg-del{
+  position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;border:0;
+  background:rgba(44,38,36,.55);color:#fff;display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(3px);cursor:pointer;
+}
+.mg-del svg{width:10px;height:10px;stroke-width:2.4}
+/* 链接 chips */
+.links{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.lk{
+  display:inline-flex;align-items:center;gap:5px;padding:4.5px 10px;border-radius:20px;
+  background:var(--gold-soft);color:var(--gold);font-size:11px;cursor:pointer;border:1px solid transparent;
+  transition:.2s;max-width:100%;
+}
+.lk:active{background:#F0E4D4}
+.lk span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.lk-x{
+  width:14px;height:14px;flex:0 0 14px;border-radius:50%;background:rgba(194,163,135,.25);
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.lk-x svg{width:7px;height:7px;stroke-width:2.6}
+.lk-add{
+  display:inline-flex;align-items:center;gap:4px;padding:4.5px 10px;border-radius:20px;
+  border:1px dashed var(--line-2);color:var(--ink-3);font-size:11px;cursor:pointer;background:transparent;
+  transition:.2s;
+}
+.lk-add:active{border-color:var(--accent-2);color:var(--accent)}
+.lk-add svg{width:11px;height:11px;stroke-width:2}
+.lk-foot{margin-top:10px}
+
+/* ---------- fab ---------- */
+.fab{
+  position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom) + 20px);
+  width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;border:0;
+  box-shadow:0 8px 22px -6px rgba(192,125,138,.55);cursor:pointer;z-index:40;
+  display:flex;align-items:center;justify-content:center;transition:.2s;
+}
+.fab:active{transform:scale(.92)}
+.fab svg{width:22px;height:22px;stroke-width:2}
+
+/* ---------- 弹层 ---------- */
+.mask{
+  position:fixed;inset:0;background:rgba(44,38,36,.36);backdrop-filter:blur(3px);
+  z-index:60;display:none;align-items:flex-end;justify-content:center;animation:fade .2s;
+}
+.mask.on{display:flex}
+.sheet{
+  width:100%;max-width:520px;background:var(--card);border-radius:24px 24px 0 0;
+  padding:22px 18px calc(env(safe-area-inset-bottom) + 22px);animation:up .3s cubic-bezier(.2,.8,.3,1);
+  max-height:88vh;overflow-y:auto;
+}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+.sheet-title{font-size:16px;font-weight:600;margin-bottom:16px;text-align:center}
+.sheet .field{margin-bottom:10px}
+.sheet-acts{display:flex;gap:9px;margin-top:18px}
+.sheet-acts .btn{flex:1}
+.grabber{width:34px;height:4px;border-radius:4px;background:var(--line-2);margin:0 auto 16px}
+.fl{font-size:11.5px;color:var(--ink-3);letter-spacing:.06em;margin:0 0 6px 2px}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 86px);transform:translate(-50%,14px);
+  background:var(--ink);color:#fff;font-size:12.5px;padding:9px 18px;border-radius:20px;
+  opacity:0;pointer-events:none;transition:.28s;z-index:90;white-space:nowrap;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (min-width:700px){
+  .page{padding-left:28px;padding-right:28px}
+  .ideas{columns:3}
+  .stat-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="nav" id="nav">
+    <div class="brand">WEDDING</div>
+  </nav>
+
+  <div class="main">
+    <!-- 首页 -->
+    <section class="page active" id="p-home"></section>
+    <!-- 每日待办 -->
+    <section class="page" id="p-todo"></section>
+    <!-- 进度 -->
+    <section class="page" id="p-progress"></section>
+    <!-- 开销 -->
+    <section class="page" id="p-cost"></section>
+    <!-- 待购 -->
+    <section class="page" id="p-shop"></section>
+    <!-- 创意 -->
+    <section class="page" id="p-idea"></section>
+    <!-- 妆容 -->
+    <section class="page" id="p-makeup"></section>
+    <!-- 拍照 -->
+    <section class="page" id="p-paizhao"></section>
+    <!-- 视频 -->
+    <section class="page" id="p-video"></section>
+    <!-- 游戏 -->
+    <section class="page" id="p-game"></section>
+    <!-- 同步 -->
+    <section class="page" id="p-sync"></section>
+  </div>
+</div>
+
+<button class="fab" id="fab" aria-label="新增">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<div class="mask" id="mask"><div class="sheet" id="sheet"></div></div>
+<div class="viewer" id="viewer">
+  <img id="viewerImg" src="" alt="">
+  <div class="viewer-cap" id="viewerCap"></div>
+  <div class="viewer-hint">点击任意位置关闭</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =============== 基础工具 =============== */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const KEY = 'wedding_dash_v1';
+const uid = ()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const todayKey = (d=new Date())=>{
+  const t = new Date(d.getTime()-d.getTimezoneOffset()*60000);
+  return t.toISOString().slice(0,10);
+};
+const fmtDate = s=>{const [y,m,d]=s.split('-');return `${+m}月${+d}日`;};
+const WEEK = ['日','一','二','三','四','五','六'];
+const esc = s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = n=>'¥'+(Number(n)||0).toLocaleString('zh-CN',{maximumFractionDigits:2});
+const addDays = (d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+const parseD = s=>new Date(s+'T00:00:00');
+// 日期相差天数（b - a）
+const diffDays = (a,b)=>Math.round((parseD(b)-parseD(a))/86400000);
+
+/* =============== 备婚阶段 =============== */
+const STAGES = [
+  {id:'m12', name:'筹备启动',  when:'婚礼前 12 个月', offset:-365},
+  {id:'m6',  name:'锁定资源',  when:'婚礼前 6 个月',  offset:-180},
+  {id:'m3',  name:'细节落地',  when:'婚礼前 3 个月',  offset:-90},
+  {id:'m1',  name:'收尾冲刺',  when:'婚礼前 1 个月',  offset:-30},
+  {id:'week',name:'婚礼周',    when:'婚礼前 1 周',   offset:-7},
+  {id:'day', name:'婚礼当天',  when:'婚礼日',        offset:0}
+];
+const stageById = id=>STAGES.find(s=>s.id===id)||STAGES[0];
+// 按距婚礼剩余天数落桶（唯一权威判定）
+function stageByLeftDays(left){
+  if(left<=0) return 'day';
+  if(left<=7) return 'week';
+  if(left<=30) return 'm1';
+  if(left<=90) return 'm3';
+  if(left<=180) return 'm6';
+  return 'm12';
+}
+// 由具体日期推算阶段
+function stageOfDate(dateStr){
+  if(!dateStr) return 'm12';
+  return stageByLeftDays(diffDays(todayKey(), dateStr));
+}
+function currentStageId(){ return stageByLeftDays(Math.max(daysLeft(),0)); }
+// 每条事项的所属阶段：显式指定优先，否则按日期推算
+function progStage(p){ return p.stage || stageOfDate(p.date) || 'm12'; }
+function todoStage(t,k){ return t.stage || stageByLeftDays(diffDays(S.settings.date,k)); }
+
+/* =============== 数据层 =============== */
+const DEFAULT = ()=>{
+  const t = todayKey();
+  return {
+    settings:{ date:'2026-05-20', couple:'我们' },
+    todos:{
+      [t]:[
+        {id:uid(),t:'确认婚礼日期与场地档期',done:false,cat:'场地',stage:'m3'},
+        {id:uid(),t:'列出双方宾客初步名单',done:false,cat:'宾客',stage:'m3'},
+        {id:uid(),t:'对比 2 家婚纱摄影风格',done:false,cat:'婚纱照',stage:'m3'}
+      ]
+    },
+    progress:[
+      {id:uid(),stage:'m6', date:'2026-01-15', title:'确定婚期与预算',note:'初步锁定 5 月，总预算区间已定',done:true},
+      {id:uid(),stage:'m3', date:'2026-03-10', title:'预订场地与跟妆',note:'',done:false},
+      {id:uid(),stage:'m3', date:'2026-03-20', title:'确定婚纱照拍摄档期',note:'',done:false},
+      {id:uid(),stage:'m1', date:'2026-04-20', title:'礼服试穿与定稿',note:'',done:false},
+      {id:uid(),stage:'week', date:'2026-05-14', title:'确认宾客到场与座位表',note:'',done:false},
+      {id:uid(),stage:'day', date:'2026-05-20', title:'婚礼当天流程彩排',note:'',done:false}
+    ],
+    costs:[
+      {id:uid(),date:todayKey(),item:'场地定金',cat:'场地',amount:5000,note:'已付'},
+      {id:uid(),date:todayKey(),item:'试妆费',cat:'妆容',amount:800,note:''}
+    ],
+    shopping:[
+      {id:uid(),name:'新娘晨袍',cat:'服饰',price:600,qty:1,got:false,note:'真丝，香槟色'},
+      {id:uid(),name:'喜糖礼盒',cat:'喜品',price:12,qty:200,got:false,note:''},
+      {id:uid(),name:'伴手礼丝带',cat:'布置',price:30,qty:3,got:true,note:''}
+    ],
+    ideas:[
+      {id:uid(),title:'晨间仪式感',content:'不接亲，改成一起晨跑 + 早午餐，用胶片相机记录。'},
+      {id:uid(),title:'座位卡巧思',content:'用宾客共同回忆做 seat card 背面文案，落座时念出来。'}
+    ],
+    makeup:{
+      chenpao:{dress:'真丝晨袍 · 香槟白',hair:'低盘发+珍珠发卡',makeup:'清透裸妆，唇色豆沙粉',acc:'真丝拖鞋 · 戒指盒'},
+      hunsha:{dress:'缎面A字主纱 · 象牙白',hair:'缎面发箍+微卷披发',makeup:'缎光底妆，眉形柔化',acc:'长头纱 · 珍珠耳坠'},
+      yingbin:{dress:'轻纱迎宾裙 · 雾霾蓝',hair:'鱼骨辫半扎',makeup:'蜜桃腮红，亮面唇釉',acc:'迷你手捧 · 银色高跟鞋'},
+      xiufu:{dress:'秀禾服 · 正红金线',hair:'传统发髻+金步摇',makeup:'哑光红唇，浓眉眼线',acc:'金镯 · 红色手包'}
+    },
+    done:{}
+  };
+};
+let S;
+try{ S = JSON.parse(localStorage.getItem(KEY)) || DEFAULT(); }catch(e){ S = DEFAULT(); }
+// 兜底补全
+const D = DEFAULT();
+for(const k in D) if(S[k]===undefined) S[k]=D[k];
+if(!S.makeup) S.makeup=D.makeup;
+S.todos = S.todos||{};
+// 旧数据迁移：progress 的 month -> stage + date
+if(Array.isArray(S.progress)){
+  S.progress.forEach(p=>{
+    if(p.stage===undefined || p.stage===null){
+      if(p.month){ p.stage = stageOfDate((p.month)+'-15'); p.date = p.date || ((p.month)+'-15'); }
+      else p.stage = 'm3';
+    }
+    if(!p.date) p.date = S.settings.date ? S.settings.date : todayKey();
+  });
+}
+// 拍照/视频/游戏清单：迁移到启动时执行（见 seedCollections）
+
+let saveTimer=null;
+function save(skipPush){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{
+    S._ts=Date.now();
+    try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){ toast('存储失败'); }
+    if(!skipPush) scheduleAutoPush();
+  },120);
+}
+function toast(msg){
+  const el=$('#toast'); el.textContent=msg; el.classList.add('on');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('on'),1600);
+}
+
+/* =============== 图片 =============== */
+// 从相册选图 → 压缩 → base64
+function pickImage(cb){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*';
+  inp.onchange=()=>{
+    const file=inp.files[0];
+    if(!file) return;
+    if(!/^image\//.test(file.type)) return toast('请选择图片文件');
+    const rd=new FileReader();
+    rd.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const MAX=900;
+        let w=img.width,h=img.height;
+        if(Math.max(w,h)>MAX){ const k=MAX/Math.max(w,h); w=Math.round(w*k); h=Math.round(h*k); }
+        const cv=document.createElement('canvas');
+        cv.width=w; cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        let data=cv.toDataURL('image/jpeg',0.72);
+        if(data.length>500000) data=cv.toDataURL('image/jpeg',0.55);   // 超大再压一档
+        cb(data);
+      };
+      img.onerror=()=>toast('图片读取失败');
+      img.src=rd.result;
+    };
+    rd.onerror=()=>toast('图片读取失败');
+    rd.readAsDataURL(file);
+  };
+  inp.click();
+}
+// 全屏查看
+function viewImage(src,cap=''){
+  $('#viewerImg').src=src;
+  $('#viewerCap').textContent=cap;
+  $('#viewer').classList.add('on');
+}
+$('#viewer').onclick=()=>$('#viewer').classList.remove('on');
+// 渲染图片块（含删除按钮）
+function imgBlock(src,delAttr,capAttr,cap=''){
+  return `<div class="img-wrap">
+    <img src="${src}" ${capAttr?`data-view="${capAttr}"`:''}>
+    <button class="img-x" ${delAttr?`data-imgdel="${delAttr}"`:''} aria-label="删除图片">${svg('imgdel')}</button>
+  </div>`;
+}
+/* =============== 多图与链接组件 =============== */
+// 多图网格：ctx='idea:ID' 或 'prog:ID'
+function mgridHTML(ctx,imgs,small){
+  const cells=imgs.map((src,i)=>`
+    <div class="mg-cell">
+      <img src="${src}" data-view="${ctx}:${esc(String(i))}">
+      <button class="mg-del" data-mgdel="${ctx}:${i}">${svg('close')}</button>
+    </div>`).join('');
+  return `<div class="mgrid${small?' mgrid-sm':''}">
+    ${cells}
+    <div class="mg-add" data-mgadd="${ctx}">${svg('camera')}添加图片</div>
+  </div>`;
+}
+const PLATFORMS=[['淘宝','taobao'],['拼多多','pdd'],['京东','jd'],['抖音','douyin'],['小红书','xhs'],['微博','weibo'],['其他','other']];
+// 链接行：ctx 同上
+function linksHTML(ctx,links){
+  const chips=(links||[]).map((l,i)=>`<span class="lk" data-lkopen="${ctx}:${i}">
+      <span>${esc(l.name)}</span>
+      <i class="lk-x" data-lkdel="${ctx}:${i}">${svg('close')}</i>
+    </span>`).join('');
+  return `<div class="links">
+    ${chips}<button class="lk-add" data-lkadd="${ctx}">${svg('plus')}添加链接</button>
+  </div>`;
+}
+// 统一绑定：根据ctx前缀找到目标数组
+function ctxRef(ctx){
+  const [kind,id]=ctx.split(':');
+  const collectionCfg = Object.values(COLLECTIONS).find(c=>c.ctx===kind);
+  if(kind==='idea'){ const o=S.ideas.find(x=>x.id===id); return {img:o&&o.imgs, lk:o&&o.links, obj:o}; }
+  if(kind==='prog'){ const o=S.progress.find(x=>x.id===id); return {img:o&&o.imgs, lk:o&&o.links, obj:o}; }
+  if(kind==='shop'){ const o=S.shopping.find(x=>x.id===id); return {img:null, lk:o&&o.links, obj:o}; }
+  if(collectionCfg){ const o=S[collectionCfg.store].find(x=>x.id===id); return {img:o&&o.imgs, lk:o&&o.links, obj:o}; }
+  if(kind==='mk'){ const o=S.makeup[id]; return {img:o&&o.imgs, lk:null, obj:o}; }
+  if(kind==='mkf'){ const [lk,fk]=id.split('.'); const o=S.makeup[lk]&&S.makeup[lk].fields[fk]; return {img:o&&o.imgs, lk:o&&o.links, obj:o}; }
+  return {};
+}
+function ensureMulti(o){
+  if(!Array.isArray(o.imgs)) o.imgs = o.img? [o.img] : [];   // 单图迁移
+  if(!Array.isArray(o.links)) o.links=[];
+  delete o.img;
+}
+function bindMedia(pageEl,ctxPrefix,rerender){
+  $$('[data-mgadd]',pageEl).forEach(el=>el.onclick=()=>{
+    const ref=ctxRef(el.dataset.mgadd); if(!ref.obj) return;
+    ensureMulti(ref.obj);
+    pickImage(d=>{
+      ref.obj.imgs.push(d); save(); rerender();
+      if(JSON.stringify(S).length>4700000) toast('提示：存储接近上限，图片较多时注意删减');
+    });
+  });
+  $$('[data-mgdel]',pageEl).forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const full=el.dataset.mgdel; const [ctx,i]=splitLast(full);
+    const ref=ctxRef(ctx); if(!ref.obj) return;
+    if(!confirm('删除这张图片？')) return;
+    ref.obj.imgs.splice(+i,1); save(); rerender(); toast('已删除');
+  });
+  $$('[data-view]',pageEl).forEach(el=>el.onclick=e=>{
+    if(e.target.closest('.mg-del')||e.target.closest('.lk-x')) return;
+    const full=el.dataset.view; const [ctx,i]=splitLast(full);
+    const ref=ctxRef(ctx);
+    if(ref.obj) viewImage(el.src, ref.obj.title||ref.obj.name||'');
+  });
+  $$('[data-lkadd]',pageEl).forEach(el=>el.onclick=()=>{
+    const ctx=el.dataset.lkadd;
+    openSheet('添加链接',[
+      f('选择','平台','p','taobao',PLATFORMS.map(([n,id])=>[id,n])),
+      f('输入框','链接地址（长按淘宝/小红书分享按钮可复制）','u','')
+    ],v=>{
+      if(!v.u.trim()) return toast('请输入链接地址');
+      const ref=ctxRef(ctx); if(!ref.obj) return;
+      ensureMulti(ref.obj);
+      const name=(PLATFORMS.find(([k,id])=>id===v.p)||['链接'])[0];
+      let url=v.u.trim();
+      if(!/^https?:\/\//i.test(url)) url='https://'+url.replace(/^\/+/,'');
+      ref.obj.links.push({name,url}); save(); closeSheet(); rerender(); toast('链接已添加');
+    });
+  });
+  $$('[data-lkdel]',pageEl).forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const full=el.dataset.lkdel; const [ctx,i]=splitLast(full);
+    const ref=ctxRef(ctx); if(!ref.obj) return;
+    if(!confirm('删除这个链接？')) return;
+    ref.obj.links.splice(+i,1); save(); rerender(); toast('已删除');
+  });
+  $$('[data-lkopen]',pageEl).forEach(el=>el.onclick=e=>{
+    if(e.target.closest('.lk-x')) return;
+    const full=el.dataset.lkopen; const [ctx,i]=splitLast(full);
+    const ref=ctxRef(ctx); const l=ref.obj&&ref.obj.links[+i];
+    if(l) window.open(l.url,'_blank','noopener');
+  });
+}
+function splitLast(s){
+  const i=s.lastIndexOf(':'); return [s.slice(0,i), s.slice(i+1)];
+}
+
+/* =============== 图标 =============== */
+const ICON = {
+  home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>',
+  check:'<path d="M9 11l2.5 2.5L15 8"/><rect x="3" y="4" width="18" height="17" rx="3"/>',
+  chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  wallet:'<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16 14.5h2"/>',
+  bag:'<path d="M6 8h12l1 12H5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+  bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.4.3.5.7.5 1.1v1h6v-1c0-.4.1-.8.5-1.1A6 6 0 0 0 12 3z"/>',
+  mirror:'<circle cx="12" cy="12" r="9"/><path d="M15 9.5c0-1.9-1.6-3-3.4-3-1.9 0-3.2 1.2-3.2 2.8 0 2.6 5.2 1.8 5.2 4.2 0 1.4-1.2 2.3-2.8 2.3"/>',
+  sync:'<path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-8.5-6"/><path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 8.5 6"/><path d="M21 15v-3h-3M3 9v3h3"/>',
+  video:'<rect x="3" y="6" width="13" height="12" rx="2.5"/><path d="M16 10.5l5-3v9l-5-3"/>',
+  game:'<rect x="3" y="7" width="18" height="11" rx="4"/><path d="M8 11v3M6.5 12.5h3"/><circle cx="15.5" cy="11.5" r="1" fill="currentColor"/><circle cx="17.8" cy="13.8" r="1" fill="currentColor"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  trash:'<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13h10l1-13"/>',
+  camera:'<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
+  imgdel:'<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  close:'<path d="M6 6l12 12M18 6L6 18"/>'
+};
+const svg = (n,cls='')=>`<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">${ICON[n]}</svg>`;
+
+/* =============== 导航 =============== */
+const PAGES = [
+  {id:'home',   icon:'home',  label:'总览'},
+  {id:'todo',   icon:'check', label:'今日'},
+  {id:'progress',icon:'chart',label:'进度'},
+  {id:'cost',   icon:'wallet',label:'开销'},
+  {id:'shop',   icon:'bag',   label:'待购'},
+  {id:'idea',   icon:'bulb',  label:'灵感'},
+  {id:'makeup', icon:'mirror',label:'妆容'},
+  {id:'paizhao',icon:'camera',label:'拍照'},
+  {id:'video',  icon:'video', label:'视频'},
+  {id:'game',   icon:'game',  label:'游戏'},
+  {id:'sync',   icon:'sync',  label:'同步'}
+];
+let cur = 'home';
+function buildNav(){
+  const nav = $('#nav');
+  nav.innerHTML = '<div class="brand">WEDDING</div>' + PAGES.map((p,i)=>
+    (i===4?'<div class="nav-sep"></div>':'') +
+    `<button class="nav-item${p.id==='home'?' active':''}" data-page="${p.id}">
+       ${svg(p.icon)}<span>${p.label}</span>
+     </button>`).join('');
+  $$('.nav-item',nav).forEach(b=>b.onclick=()=>go(b.dataset.page));
+}
+function go(id){
+  cur = id;
+  $$('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.page===id));
+  PAGES.forEach(p=>$('#p-'+p.id).classList.toggle('active',p.id===id));
+  render(id);
+  $('#p-'+id).scrollTop = 0;
+}
+
+/* =============== 首页 =============== */
+function daysLeft(){
+  const d = new Date(S.settings.date+'T00:00:00');
+  const n = new Date(); n.setHours(0,0,0,0);
+  return Math.ceil((d-n)/86400000);
+}
+function todayTodos(){ const k=todayKey(); return S.todos[k]||[]; }
+function totalCost(){ return S.costs.reduce((a,c)=>a+(Number(c.amount)||0),0); }
+function shopTotal(){ return S.shopping.reduce((a,c)=>a+(Number(c.price)||0)*(Number(c.qty)||1),0); }
+function progressPct(){
+  const items = S.progress;
+  if(!items.length) return 0;
+  return Math.round(items.filter(p=>p.done).length/items.length*100);
+}
+function ringSVG(pct,size=70,stroke=6){
+  const r=(size-stroke)/2, c=2*Math.PI*r;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#F1E9E4" stroke-width="${stroke}"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#C07D8A" stroke-width="${stroke}"
+      stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-pct/100)}"/>
+  </svg>`;
+}
+function renderHome(){
+  const dl = daysLeft(), td = todayTodos();
+  const doneN = td.filter(t=>t.done).length;
+  const tdPct = td.length? Math.round(doneN/td.length*100):0;
+  const pgPct = progressPct();
+  const got = S.shopping.filter(s=>s.got).length;
+  const shopPct = S.shopping.length? Math.round(got/S.shopping.length*100):0;
+
+  $('#p-home').innerHTML = `
+    <div class="hero">
+      <div class="hero-label">Countdown</div>
+      <div class="hero-h">${esc(S.settings.couple)} · 距离婚礼还有</div>
+      <div class="count"><b>${dl>0?dl:0}</b><span>${dl>0?'天':(dl===0?'就是今天 💍':'已圆满')}</span></div>
+      <div class="hero-date">${esc(S.settings.date)} · ${WEEK[new Date(S.settings.date+'T00:00:00').getDay()]==='日'?'周日':'周'+WEEK[new Date(S.settings.date+'T00:00:00').getDay()]}</div>
+      <div style="margin-top:14px;position:relative">
+        <span class="stage-badge"><i></i>当前阶段 · ${stageById(currentStageId()).name}</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><i></i>今日待办</div>
+        <button class="btn ghost tiny" data-go="todo">全部 →</button>
+      </div>
+      ${ td.length ? `<div class="ring-wrap">
+        <div class="ring">${ringSVG(tdPct)}<div class="ring-val"><b>${tdPct}%</b><i>完成</i></div></div>
+        <div class="grow">
+          <div style="font-size:13px;color:var(--ink-2);margin-bottom:8px">已完成 ${doneN} / ${td.length} 项</div>
+          ${td.slice(0,3).map(t=>`<div class="check-item${t.done?' done':''}" style="padding:6px 0;border:0">
+            <div class="ci-box${t.done?' on':''}" data-home-toggle="${t.id}">${svg('check')}</div>
+            <div class="ci-body"><div class="ci-text" style="font-size:13px">${esc(t.t)}</div></div>
+          </div>`).join('')}
+        </div>
+      </div>` : `<div class="empty">今天还没有待办，去添加一件吧</div>`}
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat" data-go="progress">
+        <div class="stat-label">备婚进度</div>
+        <div class="stat-val">${pgPct}<em>%</em></div>
+        <div class="stat-foot">${S.progress.filter(p=>p.done).length}/${S.progress.length} 事项完成</div>
+      </div>
+      <div class="stat" data-go="cost">
+        <div class="stat-label">累计开销</div>
+        <div class="stat-val">${money(totalCost())}</div>
+        <div class="stat-foot">${S.costs.length} 笔记录</div>
+      </div>
+      <div class="stat" data-go="shop">
+        <div class="stat-label">待购进度</div>
+        <div class="stat-val">${shopPct}<em>%</em></div>
+        <div class="stat-foot">已购 ${got}/${S.shopping.length} 件</div>
+      </div>
+      <div class="stat" data-go="idea">
+        <div class="stat-label">灵感收藏</div>
+        <div class="stat-val">${S.ideas.length}<em>条</em></div>
+        <div class="stat-foot">点击查看全部</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="card-head"><div class="card-title"><i></i>预算预估</div></div>
+      <div class="row" style="justify-content:space-between">
+        <span class="muted">已花费</span><span class="amount">${money(totalCost())}</span>
+      </div>
+      <div class="row" style="justify-content:space-between;margin-top:8px">
+        <span class="muted">待购清单预算</span><span class="amount grey">${money(shopTotal())}</span>
+      </div>
+      <div style="height:1px;background:var(--line);margin:12px 0"></div>
+      <div class="row" style="justify-content:space-between">
+        <span style="font-size:13px;font-weight:600">合计预估</span>
+        <span class="amount" style="font-size:18px">${money(totalCost()+shopTotal())}</span>
+      </div>
+    </div>
+  `;
+  $$('[data-go]',$('#p-home')).forEach(el=>el.onclick=e=>{ if(e.target.closest('[data-home-toggle]'))return; go(el.dataset.go); });
+  $$('[data-home-toggle]',$('#p-home')).forEach(el=>el.onclick=()=>{
+    const t = td.find(x=>x.id===el.dataset.homeToggle);
+    if(t){ t.done=!t.done; save(); renderHome(); }
+  });
+}
+
+/* =============== 每日待办（周视图 + 月历） =============== */
+let todoDate = todayKey();
+let weekAnchor = todayKey();         // 当前周内任意一天
+let calYM = todayKey().slice(0,7);   // 月历显示的月份
+let calOpen = false;
+
+function weekStart(k){
+  const d = parseD(k);
+  const off = (d.getDay()+6)%7;      // 周一为一周开始
+  return todayKey(addDays(d,-off));
+}
+function renderTodo(){
+  const list = S.todos[todoDate]||[];
+  const doneN = list.filter(x=>x.done).length;
+  const ws = weekStart(weekAnchor);
+  const wkDays = Array.from({length:7},(_,i)=>todayKey(addDays(parseD(ws),i)));
+  const tk = todayKey();
+
+  const ws_d = parseD(ws), we_d = addDays(ws_d,6);
+  const sameMonth = ws_d.getMonth()===we_d.getMonth();
+  const rangeLabel = sameMonth
+    ? `${ws_d.getMonth()+1}月${ws_d.getDate()}日 – ${we_d.getDate()}日`
+    : `${ws_d.getMonth()+1}月${ws_d.getDate()}日 – ${we_d.getMonth()+1}月${we_d.getDate()}日`;
+
+  // 月历
+  const [cy,cm] = calYM.split('-').map(Number);
+  const first = new Date(cy,cm-1,1);
+  const lead = (first.getDay()+6)%7;
+  const dim = new Date(cy,cm,0).getDate();
+  const cells = [];
+  for(let i=0;i<lead;i++) cells.push({d:null});
+  for(let i=1;i<=dim;i++) cells.push({d:i,key:`${cy}-${String(cm).padStart(2,'0')}-${String(i).padStart(2,'0')}`});
+  while(cells.length%7) cells.push({d:null});
+
+  $('#p-todo').innerHTML = `
+    <div class="ptitle">每日待办</div>
+    <div class="psub">Daily Checklist</div>
+
+    <div class="wk-nav">
+      <button class="wk-arrow" data-wk="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <div class="wk-label" data-cal-toggle>
+        <b>${rangeLabel}</b>
+        <span>${calOpen?'收起月历':'点击展开月历'}</span>
+      </div>
+      <button class="wk-arrow" data-wk="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    </div>
+
+    <div class="week">
+      ${wkDays.map(k=>{ const d=parseD(k); const has=(S.todos[k]||[]).length>0;
+        return `<div class="wd${k===todoDate?' active':''}${k===tk?' today':''}${has?' has':''}" data-wd="${k}">
+          <div class="dw">${k===tk?'今':'周'+WEEK[d.getDay()]}</div>
+          <div class="dd">${d.getDate()}</div>
+          <div class="dot"></div>
+        </div>`; }).join('')}
+    </div>
+
+    <div class="cal${calOpen?' open':''}">
+      <div class="cal-head">
+        <button class="wk-arrow" data-cal="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div class="cal-title">${cy} 年 ${cm} 月</div>
+        <button class="wk-arrow" data-cal="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+      <div class="cal-grid">
+        ${['一','二','三','四','五','六','日'].map(w=>`<div class="cal-wk">${w}</div>`).join('')}
+        ${cells.map(c=>c.d===null?`<div class="cal-d mute"></div>`:
+          `<div class="cal-d${c.key===todoDate?' active':''}${c.key===tk?' today':''}" data-cd="${c.key}">
+             ${c.d}${(S.todos[c.key]||[]).length?'<div class="cdot"></div>':''}
+           </div>`).join('')}
+      </div>
+      <div class="cal-leg"><span><i></i>有安排</span><span><i style="background:var(--ink)"></i>当前选中</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><i></i>${fmtDate(todoDate)}</div>
+        <span class="muted">${doneN}/${list.length}</span>
+      </div>
+      ${ list.length ? list.map(t=>`
+        <div class="check-item${t.done?' done':''}">
+          <div class="ci-box${t.done?' on':''}" data-tg="${t.id}">${svg('check')}</div>
+          <div class="ci-body">
+            <div class="ci-text">${esc(t.t)}</div>
+            <div class="ci-meta">
+              ${t.cat?`<span class="tag plain">${esc(t.cat)}</span>`:''}
+              <span class="tag gold">${stageById(todoStage(t,todoDate)).name}</span>
+            </div>
+          </div>
+          <button class="icon-btn" data-tdel="${t.id}">${svg('edit')}</button>
+        </div>`).join('') : `<div class="empty">这一天还没有安排<br><span style="font-size:12px">点击下方 ＋ 添加</span></div>`}
+    </div>
+    ${ list.length ? `<button class="btn ghost block" data-clear="${todoDate}">清空这一天的记录</button>`:'' }
+  `;
+
+  $$('[data-wk]',$('#p-todo')).forEach(el=>el.onclick=()=>{
+    weekAnchor = todayKey(addDays(parseD(weekAnchor), Number(el.dataset.wk)*7));
+    todoDate = weekAnchor; calYM = todoDate.slice(0,7); renderTodo();
+  });
+  $$('[data-wd]',$('#p-todo')).forEach(el=>el.onclick=()=>{
+    todoDate = el.dataset.wd; weekAnchor = todoDate; calYM = todoDate.slice(0,7); renderTodo();
+  });
+  const ct = $('[data-cal-toggle]',$('#p-todo'));
+  if(ct) ct.onclick=()=>{ calOpen=!calOpen; renderTodo(); };
+  $$('[data-cal]',$('#p-todo')).forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const [y,m] = calYM.split('-').map(Number);
+    const d = new Date(y, m-1+Number(el.dataset.cal), 1);
+    calYM = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    renderTodo();
+  });
+  $$('[data-cd]',$('#p-todo')).forEach(el=>el.onclick=()=>{
+    todoDate = el.dataset.cd; weekAnchor = todoDate; renderTodo();
+  });
+  $$('[data-tg]',$('#p-todo')).forEach(el=>el.onclick=()=>{
+    const t=(S.todos[todoDate]||[]).find(x=>x.id===el.dataset.tg);
+    if(t){ t.done=!t.done; save(); renderTodo(); }
+  });
+  $$('[data-tdel]',$('#p-todo')).forEach(el=>el.onclick=()=>{
+    const arr=S.todos[todoDate]||[]; const t=arr.find(x=>x.id===el.dataset.tdel);
+    if(!t) return;
+    openSheet('编辑待办',[
+      f('输入框','任务内容','t',t.t),
+      f('输入框','分类（如 场地 / 宾客）','c',t.cat||''),
+      f('选择','阶段','s',t.stage||todoStage(t,todoDate))
+    ],v=>{
+      t.t=v.t||t.t; t.cat=v.c||''; t.stage=v.s||t.stage;
+      save(); renderTodo(); closeSheet(); toast('已更新');
+    },()=>{ S.todos[todoDate]=arr.filter(x=>x.id!==t.id); save(); renderTodo(); closeSheet(); toast('已删除'); });
+  });
+  const cl = $('[data-clear]',$('#p-todo'));
+  if(cl) cl.onclick=()=>{ if(confirm('确定清空 '+fmtDate(todoDate)+' 的全部待办？')){ delete S.todos[todoDate]; save(); renderTodo(); toast('已清空'); } };
+}
+
+/* =============== 阶段路线图 =============== */
+const stageOpen = {};
+function renderProgress(){
+  S.progress.forEach(ensureMulti);
+  const nowId = currentStageId();
+  const nowIdx = STAGES.findIndex(s=>s.id===nowId);
+
+  $('#p-progress').innerHTML = `
+    <div class="ptitle">备婚进度</div>
+    <div class="psub">Wedding Roadmap</div>
+    <div class="card" style="display:flex;align-items:center;gap:16px">
+      <div class="ring" style="flex:0 0 70px">${ringSVG(progressPct())}<div class="ring-val"><b>${progressPct()}%</b><i>总进度</i></div></div>
+      <div>
+        <div style="margin-bottom:6px"><span class="stage-badge"><i></i>当前 · ${stageById(nowId).name}</span></div>
+        <div class="muted">共 ${S.progress.length} 个事项，已完成 ${S.progress.filter(p=>p.done).length} 个</div>
+      </div>
+    </div>
+
+    <div class="road">
+      ${STAGES.map((s,i)=>{
+        const items = S.progress.filter(p=>progStage(p)===s.id);
+        const dn = items.filter(p=>p.done).length;
+        const isNow = s.id===nowId;
+        const isFin = i<nowIdx || (items.length>0 && dn===items.length && i<=nowIdx);
+        const open = stageOpen[s.id];
+        const d = S.settings.date? addDays(parseD(S.settings.date), s.offset) : null;
+        const dl = d? diffDays(todayKey(), todayKey(d)) : null;
+        const when = d? `${d.getMonth()+1}.${d.getDate()}` : s.when;
+        const tip = isNow ? '进行中' : (isFin? '已过' : (dl!==null? `还有 ${dl} 天` : ''));
+        return `<div class="road-item${isNow?' now':''}${isFin&&!isNow?' fin':''}${open?' open':''}">
+          <div class="road-dot"></div>
+          <div class="road-card" data-sh="${s.id}">
+            <div class="road-top">
+              <div class="road-name">${s.name}</div>
+              ${isNow?`<span class="road-tag">当前</span>`:''}
+              <div class="road-when">${when}</div>
+            </div>
+            <div class="row" style="gap:10px;align-items:center">
+              <div class="month-bar"><i style="width:${items.length?Math.round(dn/items.length*100):0}%"></i></div>
+              <div class="month-pct">${dn}/${items.length}</div>
+            </div>
+            ${tip?`<div class="muted" style="font-size:10.5px;margin-top:7px">${tip}</div>`:''}
+          </div>
+          <div class="road-body">
+            ${items.length? items.map(p=>`
+              <div class="item">
+                <div class="ci-box${p.done?' on':''}" data-pg="${p.id}" style="margin-top:2px">${svg('check')}</div>
+                <div class="item-body">
+                  <div class="item-t" style="${p.done?'color:var(--ink-3);text-decoration:line-through':''}">${esc(p.title)}</div>
+                  <div class="item-s">${p.date?fmtDate(p.date):''}${p.note?` · ${esc(p.note)}`:''}</div>
+                  ${mgridHTML('prog:'+p.id,p.imgs,true)}
+                  ${linksHTML('prog:'+p.id,p.links)}
+                </div>
+                <button class="icon-btn" data-pedit="${p.id}">${svg('edit')}</button>
+              </div>`).join('')
+            : `<div class="empty" style="padding:14px 0;font-size:12.5px">这个阶段还没有事项</div>`}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+  $$('[data-sh]',$('#p-progress')).forEach(el=>el.onclick=e=>{
+    if(e.target.closest('[data-pg]')||e.target.closest('[data-pedit]')||e.target.closest('.mg-cell')||e.target.closest('.mg-add')||e.target.closest('.lk')||e.target.closest('.lk-add')) return;
+    const id=el.dataset.sh; stageOpen[id]=!stageOpen[id]; renderProgress();
+  });
+  bindMedia($('#p-progress'),'prog',renderProgress);
+  $$('[data-pg]',$('#p-progress')).forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const p=S.progress.find(x=>x.id===el.dataset.pg); if(p){ p.done=!p.done; save(); renderProgress(); }
+  });
+  $$('[data-pedit]',$('#p-progress')).forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const p=S.progress.find(x=>x.id===el.dataset.pedit); if(!p) return;
+    openSheet('编辑进度',[
+      f('选择','所属阶段','s',progStage(p)),
+      f('日期','计划日期','d',p.date||S.settings.date),
+      f('输入框','事项标题','t',p.title),
+      f('文本域','备注 / 进展说明','n',p.note||'')
+    ],v=>{ p.stage=v.s||progStage(p); p.date=v.d||p.date; p.title=v.t||p.title; p.note=v.n||'';
+      save(); renderProgress(); closeSheet(); toast('已更新'); },
+      ()=>{ S.progress=S.progress.filter(x=>x.id!==p.id); save(); renderProgress(); closeSheet(); toast('已删除'); });
+  });
+}
+
+/* =============== 开销 =============== */
+function renderCost(){
+  const cats = [...new Set(S.costs.map(c=>c.cat||'其他'))];
+  const byCat = {};
+  S.costs.forEach(c=>{ const k=c.cat||'其他'; byCat[k]=(byCat[k]||0)+(Number(c.amount)||0); });
+  const sorted = [...S.costs].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const max = Math.max(...Object.values(byCat),1);
+
+  $('#p-cost').innerHTML = `
+    <div class="ptitle">开销记录</div>
+    <div class="psub">Expenses</div>
+    <div class="card" style="background:linear-gradient(140deg,#FFF 0%,#FDF6F7 100%)">
+      <div class="muted" style="margin-bottom:6px">累计支出</div>
+      <div style="font-size:32px;font-weight:300;letter-spacing:-.02em;color:var(--accent);font-variant-numeric:tabular-nums">${money(totalCost())}</div>
+      <div class="muted" style="margin-top:6px">共 ${S.costs.length} 笔 · 待购预算 ${money(shopTotal())}</div>
+    </div>
+    ${ cats.length ? `<div class="card">
+      <div class="card-head"><div class="card-title"><i></i>分类占比</div></div>
+      ${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
+        <div style="margin-bottom:11px">
+          <div class="row" style="justify-content:space-between;margin-bottom:5px">
+            <span style="font-size:12.5px">${esc(k)}</span>
+            <span class="muted" style="font-variant-numeric:tabular-nums">${money(v)}</span>
+          </div>
+          <div style="height:5px;border-radius:5px;background:var(--bg-2);overflow:hidden">
+            <i style="display:block;height:100%;width:${Math.round(v/max*100)}%;background:linear-gradient(90deg,var(--accent-2),var(--accent));border-radius:5px"></i>
+          </div>
+        </div>`).join('')}
+    </div>`:''}
+    <div class="card">
+      <div class="card-head"><div class="card-title"><i></i>明细</div></div>
+      ${ sorted.length ? sorted.map(c=>`
+        <div class="item">
+          <div class="item-body">
+            <div class="item-t">${esc(c.item)}</div>
+            <div class="item-s">${fmtDate(c.date||todayKey())}${c.cat?` · ${esc(c.cat)}`:''}${c.note?` · ${esc(c.note)}`:''}</div>
+          </div>
+          <div class="amount">${money(c.amount)}</div>
+          <button class="icon-btn" data-cedit="${c.id}">${svg('edit')}</button>
+        </div>`).join('') : `<div class="empty">还没有开销记录<br><span style="font-size:12px">点击下方 ＋ 记一笔</span></div>`}
+    </div>
+  `;
+  $$('[data-cedit]',$('#p-cost')).forEach(el=>el.onclick=()=>{
+    const c=S.costs.find(x=>x.id===el.dataset.cedit); if(!c) return;
+    openSheet('编辑开销',[
+      f('输入框','项目名称','i',c.item),
+      f('数字','金额','a',c.amount),
+      f('输入框','分类','c',c.cat||''),
+      f('日期','日期','d',c.date||todayKey()),
+      f('输入框','备注','n',c.note||'')
+    ],v=>{ c.item=v.i||c.item; c.amount=Number(v.a)||0; c.cat=v.c||''; c.date=v.d||c.date; c.note=v.n||''; save(); renderCost(); closeSheet(); toast('已更新'); },
+      ()=>{ S.costs=S.costs.filter(x=>x.id!==c.id); save(); renderCost(); closeSheet(); toast('已删除'); });
+  });
+}
+
+/* =============== 待购 =============== */
+function renderShop(){
+  S.shopping.forEach(ensureMulti);
+  const cats=[...new Set(S.shopping.map(s=>s.cat||'其他'))];
+  const got=S.shopping.filter(s=>s.got).length;
+  $('#p-shop').innerHTML=`
+    <div class="ptitle">待购清单</div>
+    <div class="psub">Shopping List</div>
+    <div class="card row" style="gap:16px;align-items:center">
+      <div class="ring" style="flex:0 0 70px">${ringSVG(S.shopping.length?Math.round(got/S.shopping.length*100):0)}<div class="ring-val"><b>${got}/${S.shopping.length}</b><i>已购</i></div></div>
+      <div>
+        <div style="font-size:14px;font-weight:600">预算合计 <span class="amount">${money(shopTotal())}</span></div>
+        <div class="muted" style="margin-top:3px">未购 ${S.shopping.length-got} 件</div>
+      </div>
+    </div>
+    ${ cats.length ? cats.map(cat=>{
+      const items=S.shopping.filter(s=>(s.cat||'其他')===cat);
+      return `<div class="card">
+        <div class="card-head">
+          <div class="card-title"><i></i>${esc(cat)}</div>
+          <span class="muted">${items.filter(i=>i.got).length}/${items.length}</span>
+        </div>
+        ${items.map(s=>`
+          <div class="check-item${s.got?' done':''}">
+            <div class="ci-box${s.got?' on':''}" data-sg="${s.id}">${svg('check')}</div>
+            <div class="ci-body">
+              <div class="ci-text">${esc(s.name)} <span class="muted" style="font-size:11.5px">×${s.qty||1}</span></div>
+              <div class="ci-meta">
+                ${s.price?`<span class="tag gold">${money(s.price)} / 件</span>`:''}
+                ${s.price?`<span>小计 ${money((Number(s.price)||0)*(Number(s.qty)||1))}</span>`:''}
+                ${s.note?`<span>${esc(s.note)}</span>`:''}
+              </div>
+              ${linksHTML('shop:'+s.id,s.links)}
+            </div>
+            <button class="icon-btn" data-sedit="${s.id}">${svg('edit')}</button>
+          </div>`).join('')}
+      </div>`;
+    }).join('') : `<div class="card"><div class="empty">清单还是空的<br><span style="font-size:12px">点击下方 ＋ 添加要买的东西</span></div></div>`}
+  `;
+  $$('[data-sg]',$('#p-shop')).forEach(el=>el.onclick=()=>{
+    const s=S.shopping.find(x=>x.id===el.dataset.sg); if(s){ s.got=!s.got; save(); renderShop(); }
+  });
+  bindMedia($('#p-shop'),'shop',renderShop);
+  $$('[data-sedit]',$('#p-shop')).forEach(el=>el.onclick=()=>{
+    const s=S.shopping.find(x=>x.id===el.dataset.sedit); if(!s) return;
+    openSheet('编辑物品',[
+      f('输入框','物品名称','n',s.name),
+      f('输入框','分类','c',s.cat||''),
+      f('数字','单价','p',s.price),
+      f('数字','数量','q',s.qty||1),
+      f('输入框','备注','r',s.note||'')
+    ],v=>{ s.name=v.n||s.name; s.cat=v.c||''; s.price=Number(v.p)||0; s.qty=Number(v.q)||1; s.note=v.r||''; save(); renderShop(); closeSheet(); toast('已更新'); },
+      ()=>{ S.shopping=S.shopping.filter(x=>x.id!==s.id); save(); renderShop(); closeSheet(); toast('已删除'); });
+  });
+}
+
+/* =============== 灵感 =============== */
+function renderIdea(){
+  S.ideas.forEach(ensureMulti);
+  $('#p-idea').innerHTML=`
+    <div class="ptitle">创意灵感</div>
+    <div class="psub">Inspiration</div>
+    ${ S.ideas.length ? `<div class="ideas">${S.ideas.map(i=>`
+      <div class="idea">
+        ${mgridHTML('idea:'+i.id,i.imgs,true)}
+        <div class="idea-t">${esc(i.title)}</div>
+        <div class="idea-c">${esc(i.content)}</div>
+        ${linksHTML('idea:'+i.id,i.links)}
+        <div class="lk-foot"><button class="imgbtn" data-iedit="${i.id}">${svg('edit')}编辑文字</button></div>
+      </div>`).join('')}</div>`
+    : `<div class="card"><div class="empty">还没有灵感<br><span style="font-size:12px">点击下方 ＋ 记录一个想法</span></div></div>`}
+  `;
+  bindMedia($('#p-idea'),'idea',renderIdea);
+  $$('[data-iedit]',$('#p-idea')).forEach(el=>el.onclick=()=>{
+    const i=S.ideas.find(x=>x.id===el.dataset.iedit); if(!i) return;
+    openSheet('编辑灵感',[
+      f('输入框','标题','t',i.title),
+      f('文本域','内容','c',i.content)
+    ],v=>{ i.title=v.t||i.title; i.content=v.c||''; save(); renderIdea(); closeSheet(); toast('已更新'); },
+      ()=>{ S.ideas=S.ideas.filter(x=>x.id!==i.id); save(); renderIdea(); closeSheet(); toast('已删除'); });
+  });
+}
+
+/* =============== 妆容 =============== */
+const LOOKS=[
+  {k:'chenpao', n:'晨袍',    en:'Morning Robe',  c:'#C9A87C', fields:[['dress','穿什么'],['hair','发型'],['makeup','妆容'],['acc','配饰']]},
+  {k:'xiufu',   n:'中式秀禾', en:'Chinese Gown',  c:'#B5453F', fields:[['dress','穿什么'],['hair','发型'],['makeup','妆容'],['acc','配饰']]},
+  {k:'yingbin', n:'迎宾服',  en:'Welcome',       c:'#8FA9B8', fields:[['dress','穿什么'],['hair','发型'],['makeup','妆容'],['acc','配饰']]},
+  {k:'hunsha',  n:'主纱',    en:'Wedding Gown',  c:'#C07D8A', fields:[['dress','穿什么'],['hair','发型'],['makeup','妆容'],['acc','配饰']]},
+  {k:'jingjiu', n:'敬酒服',  en:'Toast Dress',   c:'#C2A387', fields:[['dress','穿什么'],['hair','发型'],['makeup','妆容'],['acc','配饰']]}
+];
+/* 拍照 / 视频 / 游戏：自由条目清单（用户逐一添加细节） */
+const COLLECTIONS = {
+  paizhao:{ store:'paizhao', ctx:'pz', title:'拍照清单', en:'Must-capture Moments',
+    hint:'现场必拍的画面：和家人父母拥抱的瞬间、亲友群像、欢乐温馨的抓拍…一条一个画面',
+    seed:[
+      {t:'与父母拥抱的瞬间', c:'仪式前后和爸妈的拥抱，抓拍最真实的表情，别摆拍。'},
+      {t:'亲友群像大合照', c:'按亲疏分组拍：双方父母、祖辈、伴娘伴郎团、大学同学。'},
+      {t:'欢乐温馨的抓拍', c:'游戏环节大笑、老人聊天、孩子跑动，这些都是氛围感的来源。'}
+    ]},
+  video:{ store:'video', ctx:'vd', title:'视频清单', en:'Must-film Scenes',
+    hint:'一定要拍下来的视频场景：交换戒指、堵门相见…一条一个场景',
+    seed:[
+      {t:'交换戒指', c:'特写机位，戒指交换的 10 秒一定不能缺，建议双机位保险。'},
+      {t:'新郎堵门 · 第一眼相见', c:'开门瞬间两人的第一反应，情绪最真，值得长镜头。'}
+    ]},
+  game:{ store:'game', ctx:'gm', title:'游戏环节', en:'Wedding Games',
+    hint:'抽奖、互动游戏、拍卖礼品…一条一个环节，写清操作人、礼物和价值',
+    seed:[
+      {t:'抽奖环节', c:'操作人：主持人。奖品和名单待定，写清抽奖方式和轮数。'},
+      {t:'互动游戏', c:'和宾客一起玩的环节，道具和规则待补充。'},
+      {t:'拍卖礼品', c:'礼品清单和起拍价待补充，确认由谁来操作。'}
+    ]}
+};
+/* 通用条目清单页渲染 */
+function renderCollection(pageId, cfg){
+  const key=cfg.store;
+  if(!Array.isArray(S[key])) S[key]=[];   // 旧结构迁移为空清单
+  const list=S[key];
+  const confKey=cfg.ctx;
+  $('#p-'+pageId).innerHTML=`
+    <div class="ptitle">${cfg.title}</div>
+    <div class="psub">${cfg.en}</div>
+    <div class="card" style="padding:13px 15px">
+      <div class="muted" style="font-size:12.5px;line-height:1.7">${cfg.hint}<br>点击下方 ＋ 添加一条</div>
+    </div>
+    ${ list.length ? list.map(e=>`
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><i></i>${esc(e.t)}</div>
+          <button class="icon-btn" data-edit="${confKey}:${e.id}">${svg('edit')}</button>
+        </div>
+        ${e.text?`<div class="item-s" style="margin-bottom:10px">${esc(e.text)}</div>`:''}
+        ${mgridHTML(confKey+':'+e.id,e.imgs)}
+        ${linksHTML(confKey+':'+e.id,e.links)}
+      </div>`).join('')
+    : `<div class="card"><div class="empty">还没有条目<br><span style="font-size:12px">点击下方 ＋ 添加第一条</span></div></div>`}
+  `;
+  list.forEach(ensureMulti);
+  bindMedia($('#p-'+pageId),confKey,()=>renderCollection(pageId,cfg));
+  $$('[data-edit]',$('#p-'+pageId)).forEach(el=>el.onclick=()=>{
+    const [ck,id]=el.dataset.edit.split(':');
+    const arr=S[cfg.store]; const it=arr.find(x=>x.id===id); if(!it) return;
+    openSheet('编辑条目',[
+      f('输入框','标题','t',it.t),
+      f('文本域','描述 / 细节（操作人、礼物、价值、画面要求等）','c',it.text||'')
+    ],v=>{ it.t=v.t||it.t; it.text=v.c||''; save(); renderCollection(pageId,cfg); closeSheet(); toast('已更新'); },
+      ()=>{ S[cfg.store]=arr.filter(x=>x.id!==id); save(); renderCollection(pageId,cfg); closeSheet(); toast('已删除'); });
+  });
+}
+/* 妆容：每类目多张参考图 + 每细节字段（文字/多图/链接） */
+function mkMigrate(){
+  for(const l of LOOKS){
+    const old=S.makeup[l.k];
+    if(old && !old.fields){   // 旧结构迁移
+      const o={imgs:old.img?[old.img]:[],fields:{}};
+      l.fields.forEach(([fk])=>{
+        o.fields[fk]={text:old[fk]||'',imgs:[],links:[]};
+      });
+      S.makeup[l.k]=o;
+    } else if(!S.makeup[l.k]){
+      S.makeup[l.k]={imgs:[],fields:{}};
+      l.fields.forEach(([fk])=>{ S.makeup[l.k].fields[fk]={text:'',imgs:[],links:[]}; });
+    } else {
+      // 补全新增字段（如拆分后的敬酒服）
+      l.fields.forEach(([fk])=>{
+        if(!S.makeup[l.k].fields[fk]) S.makeup[l.k].fields[fk]={text:'',imgs:[],links:[]};
+      });
+      if(!Array.isArray(S.makeup[l.k].imgs)) S.makeup[l.k].imgs=[];
+    }
+  }
+}
+function renderMakeup(){
+  mkMigrate();
+  $('#p-makeup').innerHTML=`
+    <div class="ptitle">妆容灵感</div>
+    <div class="psub">Bridal Looks · ${LOOKS.length} 套</div>
+    ${LOOKS.map(l=>{
+      const d=S.makeup[l.k];
+      return `<div class="mk-card">
+        <div class="mk-head">
+          <div class="mk-dot" style="background:${l.c}"></div>
+          <div class="grow"><div class="mk-name">${l.n}</div><div class="mk-en">${l.en}</div></div>
+        </div>
+        <div class="fl" style="margin-top:12px">整体参考图</div>
+        ${mgridHTML('mk:'+l.k,d.imgs)}
+        ${l.fields.map(([fk,label])=>{
+          const fd=d.fields[fk];
+          return `<div class="mk-field" style="margin-top:14px">
+            <label>${label}</label>
+            <textarea class="field" rows="2" data-mktext="${l.k}.${fk}" placeholder="记录${l.n}的${label}…">${esc(fd.text||'')}</textarea>
+            ${mgridHTML('mkf:'+l.k+'.'+fk, fd.imgs)}
+            ${linksHTML('mkf:'+l.k+'.'+fk, fd.links)}
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('')}
+  `;
+  const rerender=()=>renderMakeup();
+  bindMedia($('#p-makeup'),'mk',rerender);
+  $$('[data-mktext]',$('#p-makeup')).forEach(el=>el.oninput=()=>{
+    const [lk,fk]=el.dataset.mktext.split('.');
+    S.makeup[lk].fields[fk].text=el.value;
+    save();
+  });
+}
+
+/* =============== 双人同步（GitHub 通道 + jsonblob 备用通道） =============== */
+const SYNC_API='https://jsonblob.com/api/jsonBlob';
+const SYNC_FILE='wedding-data.json';
+if(!S.sync) S.sync={mode:'',code:'',repo:'',token:'',ts:0};
+if(S._ts===undefined) S._ts=0;
+// 兼容旧数据：只有 code 没有 mode → jsonblob
+if(S.sync.code&&!S.sync.mode) S.sync.mode='blob';
+const syncKeyStr=()=>S.sync.mode==='gh' ? (S.sync.repo+'|'+S.sync.token) : S.sync.code;
+
+let suppressPush=false;   // 拉取写回时避免触发自动推送
+async function apiJSON(url,opt){
+  const r=await fetch(url,opt);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r;
+}
+function syncPayload(){
+  const p=JSON.parse(JSON.stringify(S));
+  delete p.sync;
+  return p;
+}
+function syncApply(remote){
+  const keep=S.sync;
+  S=Object.assign({},remote);
+  S.sync=keep;
+  S.sync.ts=remote._ts||Date.now();
+  suppressPush=true;
+  try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
+  suppressPush=false;
+}
+function b64u(str){ return btoa(unescape(encodeURIComponent(str))); }
+
+/* ---- GitHub 通道 ---- */
+function ghDataURLs(){
+  // Pages 网址区分大小写：同时尝试 原样 / 仓库首字母大写 / 全小写 三种组合，避免配对串大小写不一致导致 404
+  const [u,rest]=S.sync.repo.split('/');
+  const ru=S.sync.repo.split('/')[1];
+  if(rest===undefined||rest===u+'.github.io')
+    return [`https://${u.toLowerCase()}.github.io/${SYNC_FILE}`];
+  const variants=[rest, rest.charAt(0).toUpperCase()+rest.slice(1), rest.toLowerCase()];
+  const seen={}, list=[];
+  variants.forEach(v=>{ const url=`https://${u.toLowerCase()}.github.io/${v}/${SYNC_FILE}`; if(!seen[url]){ seen[url]=1; list.push(url); } });
+  return list;
+}
+function ghDataURL(){ return ghDataURLs()[0]; }
+async function ghFetchData(){
+  let last=null;
+  for(const url of ghDataURLs()){
+    try{
+      const r=await fetch(url+'?t='+Date.now(),{cache:'no-store'});
+      if(!r.ok){ last=new Error('HTTP '+r.status); continue; }
+      const remote=await r.json();
+      if(remote&&remote.settings) return remote;
+      last=new Error('bad');
+    }catch(e){ last=e; }
+  }
+  throw last||new Error('404');
+}
+function ghAPI(path,opt={}){
+  return apiJSON('https://api.github.com/repos/'+S.sync.repo+'/contents/'+path,{
+    ...opt,
+    headers:{
+      'Accept':'application/vnd.github+json',
+      'Authorization':'Bearer '+S.sync.token,
+      ...(opt.headers||{})
+    }
+  });
+}
+async function ghCreate(){
+  openSheet('配置 GitHub 同步',[
+    f('输入框','GitHub 用户名','u',''),
+    f('输入框','仓库名（放 App 的那个仓库）','r','wedding'),
+    f('文本域','访问令牌 Token（Settings → Developer settings → Fine-grained tokens，权限勾选该仓库的 Contents: Read and write）','t','')
+  ],async v=>{
+    const u=v.u.trim(), r=v.r.trim(), t=v.t.trim();
+    if(!u||!r||!t) return toast('请填写完整');
+    const repo=u+'/'+r;
+    toast('正在验证…');
+    try{
+      const chk=await apiJSON('https://api.github.com/repos/'+repo,{
+        headers:{'Authorization':'Bearer '+t,'Accept':'application/vnd.github+json'}
+      });
+      const info=await chk.json();
+      if(!info.default_branch) throw new Error('bad repo');
+      S.sync={mode:'gh',code:'',repo:repo,token:t,ts:Date.now()};
+      S._ts=Date.now();
+      await ghWrite();
+      save();
+      closeSheet(); renderSync(); toast('已连接 GitHub ✓');
+    }catch(e){
+      toast('验证失败：检查用户名/仓库名/令牌是否正确');
+    }
+  });
+}
+async function ghWrite(){
+  // 先查 sha（文件可能已存在）
+  let sha=null;
+  try{
+    const r=await ghAPI(SYNC_FILE);
+    sha=(await r.json()).sha;
+  }catch(e){ /* 404 = 新文件 */ }
+  await ghAPI(SYNC_FILE,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      message:'备婚数据同步 '+new Date().toLocaleString(),
+      content:b64u(JSON.stringify(syncPayload())),
+      ...(sha?{sha}:{})
+    })
+  });
+}
+/* ---- 推送 / 拉取（按通道分发） ---- */
+async function syncPush(force){
+  if(!S.sync.mode) return;
+  const payload=JSON.stringify(syncPayload());
+  try{
+    if(S.sync.mode==='gh'){
+      if(payload.length>1900000 && !force){ toast('数据过大（图片过多），无法同步'); return; }
+      await ghWrite();
+    }else{
+      if(payload.length>950000 && !force){ toast('数据过大（图片过多），无法同步'); return; }
+      if(!force){
+        const r=await apiJSON(SYNC_API+'/'+S.sync.code,{headers:{'Accept':'application/json'}});
+        const remote=await r.json();
+        if((remote._ts||0)>(S._ts||0)){ toast('云端有更新的版本，请先拉取'); return; }
+      }
+      await apiJSON(SYNC_API+'/'+S.sync.code,{
+        method:'PUT',
+        headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body:payload
+      });
+    }
+    S.sync.ts=Date.now(); save(true);
+    if(force) toast('已推送到云端 ✓');
+  }catch(e){ if(force) toast('推送失败：检查网络或令牌'); }
+}
+async function syncPull(force){
+  if(!S.sync.mode) return;
+  try{
+    let remote;
+    if(S.sync.mode==='gh'){
+      // 走你自己的 Pages 域名拉取（国内可访问，无需令牌），自动尝试大小写组合
+      remote=await ghFetchData();
+    }else{
+      const r=await apiJSON(SYNC_API+'/'+S.sync.code,{headers:{'Accept':'application/json'}});
+      remote=await r.json();
+    }
+    if(!remote||!remote.settings) throw new Error('empty');
+    if((remote._ts||0)<=(S._ts||0)&&!force){ if(force) toast('本地已是最新 ✓'); return; }
+    if(!force&&!confirm('云端有更新的数据（'+new Date(remote._ts).toLocaleString()+'），覆盖本地？')) return;
+    syncApply(remote);
+    render(cur); renderSync();
+    toast(force?'已从云端拉取 ✓':'已同步云端最新数据');
+  }catch(e){ if(force) toast('拉取失败：稍等几分钟再试（刚推送的数据有缓存延迟）'); }
+}
+// 自动同步：改动后 8 秒静默推送；启动时静默拉取
+let pushTimer=null;
+function scheduleAutoPush(){
+  if(!S.sync.mode||suppressPush) return;
+  clearTimeout(pushTimer);
+  pushTimer=setTimeout(()=>{ S._ts=Date.now(); syncPush(false); },8000);
+}
+function renderSync(){
+  const has=!!S.sync.mode;
+  const modeName=S.sync.mode==='gh'?'GitHub 仓库':'在线云（国际通道）';
+  $('#p-sync').innerHTML=`
+    <div class="ptitle">双人同步</div>
+    <div class="psub">Share & Sync</div>
+    ${has?`
+      <div class="code-show">
+        <div class="cl">配对串 · 发给另一半 · 通道：${modeName}</div>
+        <div class="cc" style="font-size:${S.sync.mode==='gh'?13:24}px">${esc(syncKeyStr())}</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><i></i>同步状态</div>
+          <span class="sync-ok">已连接</span>
+        </div>
+        <ul class="sync-list" style="list-style:none;padding:0;margin:0 0 12px">
+          <li>· 打开 App 时自动拉取云端最新数据</li>
+          <li>· 每次改动后自动推送到云端（约 8 秒后）</li>
+          <li>· 推送后 Pages 可能有几分钟缓存延迟</li>
+        </ul>
+        <div class="row wrap" style="gap:8px">
+          <button class="btn sm" data-sync-push>推送我的最新 ↑</button>
+          <button class="btn ghost sm" data-sync-pull>拉取云端最新 ↓</button>
+        </div>
+        <div class="muted" style="margin-top:10px;font-size:11.5px">
+          云端最后更新：${S.sync.ts?new Date(S.sync.ts).toLocaleString():'—'}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title"><i></i>注意事项</div></div>
+        <ul class="sync-list" style="list-style:none;padding:0;margin:0">
+          <li>· 两人避免同一时间同时编辑，后保存的会覆盖先保存的</li>
+          <li>· 建议一人主编辑，另一人查看 + 偶尔补充</li>
+          <li>· 配对串包含钥匙，只发给另一半</li>
+        </ul>
+        <button class="btn ghost block" style="margin-top:12px;color:#C25E5E" data-sync-off>退出共享（保留本地数据）</button>
+      </div>
+    `:`
+      <div class="card">
+        <div class="card-head"><div class="card-title"><i></i>方式一：GitHub 同步（国内可用 · 推荐）</div></div>
+        <p class="muted" style="margin:0 0 12px;font-size:13px">用你自己的 GitHub 仓库当云端，走你已经能访问的线路，国内网络稳定。需要生成一次访问令牌。</p>
+        <button class="btn block" data-sync-gh>配置 GitHub 通道</button>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title"><i></i>方式二：在线云配对码（需国际网络）</div></div>
+        <p class="muted" style="margin:0 0 12px;font-size:13px">免配置直接生成配对码。但此通道是国际服务，国内手机可能提示"网络连接错误"，如遇此情况请用方式一。</p>
+        <button class="btn ghost block" data-sync-create>创建配对码</button>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title"><i></i>加入对方的共享空间</div></div>
+        <p class="muted" style="margin:0 0 8px;font-size:12px">粘贴对方发来的配对串（在线云配对码 或 GitHub 配对串）</p>
+        <textarea class="ta" id="joinCode" placeholder="粘贴配对串…"></textarea>
+        <button class="btn ghost block" style="margin-top:12px" data-sync-join>加入并拉取数据</button>
+        <div class="tip" style="margin-top:12px">⚠️ 加入后云端数据会<b>覆盖</b>你本机的现有记录，请确认后再操作。</div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title"><i></i>本机备份</div></div>
+        <p class="muted" style="margin:0 0 14px">不走云端的备份方式：把数据码发给自己留档，随时可粘贴还原。</p>
+        <div class="row wrap" style="gap:8px">
+          <button class="btn ghost sm" data-sync-export>导出数据码</button>
+          <button class="btn ghost sm" data-sync-import>粘贴还原</button>
+        </div>
+      </div>
+    `}
+  `;
+  $$('[data-sync-gh]',$('#p-sync')).forEach(el=>el.onclick=()=>ghCreate());
+  $$('[data-sync-create]',$('#p-sync')).forEach(el=>el.onclick=async()=>{
+    toast('正在创建共享空间…');
+    try{
+      const r=await apiJSON(SYNC_API,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body:JSON.stringify(syncPayload())
+      });
+      const loc=r.headers.get('Location')||'';
+      const m=loc.match(/jsonBlob\/([A-Za-z0-9-]+)/);
+      const code=m?m[1]:loc.split('/').pop();
+      if(!code||!/^[A-Za-z0-9-]{8,}$/.test(code)) throw new Error('未获取到配对码');
+      S.sync={mode:'blob',code:code,repo:'',token:'',ts:Date.now()}; save();
+      renderSync(); toast('已创建，把配对码发给TA');
+    }catch(e){ toast('创建失败：该通道需国际网络，请改用 GitHub 通道'); }
+  });
+  $$('[data-sync-join]',$('#p-sync')).forEach(el=>el.onclick=async()=>{
+    const raw=$('#joinCode').value.replace(/\s+/g,'');   // 去掉换行/空格，容错微信复制
+    if(!raw) return toast('请粘贴配对串');
+    if(!confirm('将用云端数据覆盖本机现有记录，确定？')) return;
+    if(raw.includes('|')){
+      // GitHub 配对串：仓库|令牌
+      const parts=raw.split('|');
+      const repo=parts[0], token=parts[1]||'';
+      if(!repo||!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo)) return toast('配对串格式不对：缺少用户名/仓库部分');
+      if(!token) return toast('配对串格式不对：缺少令牌部分（| 后面的内容）');
+      S.sync={mode:'gh',code:'',repo:repo,token:token,ts:0};
+      let remote=null;
+      // ① 先拉数据（走 github.io，能打开网站就能拉到；自动尝试仓库大小写组合）
+      try{
+        remote=await ghFetchData();
+      }catch(e){
+        S.sync={mode:'',code:'',repo:'',token:'',ts:0};
+        return toast('拉取失败：请确认配对串完整复制（从仓库名到令牌结尾）；也请对方确认已点"立即推送"，或过几分钟再试');
+      }
+      // ② 数据到手，加入成功
+      syncApply(remote);
+      render(cur); renderSync();
+      // ③ 令牌验证放后台：失败不影响加入，仅提示推送受限
+      apiJSON('https://api.github.com/repos/'+repo,{
+        headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'}
+      }).then(r=>{
+        if(!r.ok) throw new Error();
+        toast('已加入共享空间 ✓');
+      }).catch(()=>{
+        toast('已加入，可查看数据；但当前网络无法推送，你改动后对方可能收不到');
+      });
+    }else{
+      // jsonblob 配对码（备用通道）
+      S.sync={mode:'blob',code:raw,repo:'',token:'',ts:0};
+      try{
+        const r=await apiJSON(SYNC_API+'/'+S.sync.code,{headers:{'Accept':'application/json'}});
+        const remote=await r.json();
+        if(!remote||!remote.settings) throw new Error('bad');
+        syncApply(remote);
+        render(cur); renderSync(); toast('已加入共享空间 ✓');
+      }catch(e){
+        S.sync={mode:'',code:'',repo:'',token:'',ts:0};
+        toast('该通道需国际网络；国内请让对方改用 GitHub 通道');
+      }
+    }
+  });
+  $$('[data-sync-push]',$('#p-sync')).forEach(el=>el.onclick=()=>{ S._ts=Date.now(); save(); syncPush(true); });
+  $$('[data-sync-pull]',$('#p-sync')).forEach(el=>el.onclick=()=>syncPull(true));
+  $$('[data-sync-off]',$('#p-sync')).forEach(el=>el.onclick=()=>{
+    if(confirm('退出共享？本地数据保留，不再自动同步。')){
+      S.sync={mode:'',code:'',repo:'',token:'',ts:0}; save(); renderSync(); toast('已退出共享');
+    }
+  });
+  $$('[data-sync-export]',$('#p-sync')).forEach(el=>el.onclick=()=>{
+    const data=btoa(unescape(encodeURIComponent(JSON.stringify(syncPayload()))));
+    openSheet('导出数据码（长按复制）',[
+      {type:'文本域',label:'',key:'x',val:data}
+    ],()=>{ closeSheet(); toast('已导出'); });
+    setTimeout(()=>{ const ta=$('#sheet textarea'); if(ta){ ta.readOnly=true; ta.onclick=()=>{ ta.select(); if(navigator.clipboard) navigator.clipboard.writeText(ta.value); toast('已复制'); }; } },50);
+  });
+  $$('[data-sync-import]',$('#p-sync')).forEach(el=>el.onclick=()=>{
+    openSheet('粘贴数据码还原',[
+      {type:'文本域',label:'粘贴之前导出的数据码',key:'x',val:''}
+    ],v=>{
+      try{
+        const obj=JSON.parse(decodeURIComponent(escape(atob(v.x.trim()))));
+        if(!obj.settings) throw new Error();
+        syncApply(obj);
+        render(cur); closeSheet(); renderSync(); toast('数据已还原 ✓');
+      }catch(e){ toast('数据码无效'); }
+    });
+  });
+}
+
+/* =============== 弹层 =============== */
+let sheetCtx=null;
+function f(type,label,key,val='',opts){
+  return {type,label,key,val,opts};
+}
+function fieldHTML(x){
+  if(x.type==='文本域') return `<div class="fl">${x.label}</div><textarea class="field" data-k="${x.key}" rows="3">${esc(x.val)}</textarea>`;
+  if(x.type==='日期') return `<div class="fl">${x.label}</div><input class="field" type="date" data-k="${x.key}" value="${esc(x.val||todayKey())}">`;
+  if(x.type==='数字') return `<div class="fl">${x.label}</div><input class="field" type="number" inputmode="decimal" data-k="${x.key}" value="${esc(x.val??'')}">`;
+  if(x.type==='月份') return `<div class="fl">${x.label}</div><input class="field" type="month" data-k="${x.key}" value="${esc(x.val||todayKey().slice(0,7))}">`;
+  if(x.type==='选择'){
+    const opts = x.opts || STAGES.map(s=>[s.id,s.name+' · '+s.when]);
+    return `<div class="fl">${x.label}</div><select class="field" data-k="${x.key}">
+      ${opts.map(([v,l])=>`<option value="${esc(v)}"${String(v)===String(x.val)?' selected':''}>${esc(l)}</option>`).join('')}
+    </select>`;
+  }
+  return `<div class="fl">${x.label}</div><input class="field" data-k="${x.key}" value="${esc(x.val??'')}">`;
+}
+function openSheet(title,fields,onOk,onDel){
+  sheetCtx={onOk,onDel};
+  $('#sheet').innerHTML=`
+    <div class="grabber"></div>
+    <div class="sheet-title">${esc(title)}</div>
+    ${fields.map(fieldHTML).join('')}
+    <div class="sheet-acts">
+      ${onDel?`<button class="btn ghost" id="sDel" style="flex:0 0 84px;color:#C25E5E">删除</button>`:''}
+      <button class="btn" id="sOk">保存</button>
+    </div>
+  `;
+  $('#mask').classList.add('on');
+  const ok=$('#sOk'), del=$('#sDel');
+  if(ok) ok.onclick=()=>{
+    const v={}; $$('[data-k]',$('#sheet')).forEach(el=>v[el.dataset.k]=el.value);
+    sheetCtx.onOk(v);
+  };
+  if(del) del.onclick=()=>{ if(confirm('确定删除？')) sheetCtx.onDel(); };
+}
+function closeSheet(){ $('#mask').classList.remove('on'); }
+$('#mask').onclick=e=>{ if(e.target.id==='mask') closeSheet(); };
+
+/* =============== FAB 按页新增 =============== */
+$('#fab').onclick=()=>{
+  if(cur==='todo'){
+    openSheet('添加待办',[
+      f('输入框','任务内容','t',''),
+      f('输入框','分类（选填）','c',''),
+      f('选择','所属阶段','s',todoStage({},todoDate))
+    ],v=>{
+      if(!v.t.trim()) return toast('请输入内容');
+      S.todos[todoDate]=S.todos[todoDate]||[];
+      S.todos[todoDate].push({id:uid(),t:v.t.trim(),done:false,cat:v.c.trim(),stage:v.s});
+      save(); renderTodo(); closeSheet(); toast('已添加');
+    });
+  } else if(cur==='progress'){
+    openSheet('添加进度事项',[
+      f('选择','所属阶段','s',currentStageId()),
+      f('日期','计划日期','d',S.settings.date||todayKey()),
+      f('输入框','事项标题','t',''),
+      f('文本域','备注 / 进展说明','n','')
+    ],v=>{
+      if(!v.t.trim()) return toast('请输入标题');
+      S.progress.push({id:uid(),stage:v.s||currentStageId(),date:v.d||todayKey(),title:v.t.trim(),note:v.n.trim(),done:false});
+      stageOpen[v.s]=true; save(); renderProgress(); closeSheet(); toast('已添加');
+    });
+  } else if(cur==='cost'){
+    openSheet('记一笔开销',[
+      f('输入框','项目名称','i',''),
+      f('数字','金额','a',''),
+      f('输入框','分类（如 场地/妆容/喜品）','c',''),
+      f('日期','日期','d',todayKey()),
+      f('输入框','备注','n','')
+    ],v=>{
+      if(!v.i.trim()) return toast('请输入项目名称');
+      S.costs.push({id:uid(),item:v.i.trim(),amount:Number(v.a)||0,cat:v.c.trim(),date:v.d||todayKey(),note:v.n.trim()});
+      save(); renderCost(); closeSheet(); toast('已记录');
+    });
+  } else if(cur==='shop'){
+    openSheet('添加待购物品',[
+      f('输入框','物品名称','n',''),
+      f('输入框','分类（如 服饰/喜品/布置）','c',''),
+      f('数字','单价','p',''),
+      f('数字','数量','q','1'),
+      f('输入框','备注','r','')
+    ],v=>{
+      if(!v.n.trim()) return toast('请输入名称');
+      S.shopping.push({id:uid(),name:v.n.trim(),cat:v.c.trim()||'其他',price:Number(v.p)||0,qty:Number(v.q)||1,got:false,note:v.r.trim()});
+      save(); renderShop(); closeSheet(); toast('已添加');
+    });
+  } else if(cur==='idea'){
+    openSheet('记录灵感',[
+      f('输入框','标题','t',''),
+      f('文本域','内容','c','')
+    ],v=>{
+      if(!v.t.trim()) return toast('请输入标题');
+      S.ideas.push({id:uid(),title:v.t.trim(),content:v.c.trim()});
+      save(); renderIdea(); closeSheet(); toast('已保存');
+    });
+  } else if(cur==='home'){
+    go('todo');
+  } else if(cur==='paizhao'||cur==='video'||cur==='game'){
+    const cfg=COLLECTIONS[cur];
+    openSheet('添加条目 · '+cfg.title,[
+      f('输入框','标题（如：和父母拥抱的瞬间 / 交换戒指 / 抽奖环节）','t',''),
+      f('文本域','描述 / 细节（操作人、礼物价值、画面要求等，可留空后补）','c','')
+    ],v=>{
+      if(!v.t.trim()) return toast('请输入标题');
+      if(!Array.isArray(S[cfg.store])) S[cfg.store]=[];
+      S[cfg.store].push({id:uid(),t:v.t.trim(),text:v.c.trim(),imgs:[],links:[]});
+      save(); renderCollection(cur,cfg); closeSheet(); toast('已添加');
+    });
+  } else if(cur==='makeup'){
+    toast('直接在上方卡片中填写即可');
+  }
+};
+
+/* =============== 设置入口（长按首页 hero） =============== */
+function openSettings(){
+  openSheet('婚礼设置',[
+    f('输入框','称呼（如 我们 / 名字）','c',S.settings.couple),
+    f('日期','婚礼日期','d',S.settings.date)
+  ],v=>{
+    S.settings.couple=v.c||S.settings.couple;
+    S.settings.date=v.d||S.settings.date;
+    save(); renderHome(); closeSheet(); toast('已保存');
+  });
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest('#p-home .hero')) openSettings();
+},true);
+
+/* =============== 启动 =============== */
+// 拍照/视频/游戏清单：首次初始化或旧结构迁移
+function seedCollections(){
+  for(const pid in COLLECTIONS){
+    const cfg=COLLECTIONS[pid];
+    if(S[cfg.store]===undefined){
+      S[cfg.store]=cfg.seed.map(s=>({id:uid(),t:s.t,text:s.c,imgs:[],links:[]}));
+    } else if(!Array.isArray(S[cfg.store])){
+      S[cfg.store]=[];   // 旧版固定卡片结构，重置为空清单
+    }
+  }
+}
+seedCollections();
+buildNav();
+render('home');
+function render(id){
+  if(id==='home') renderHome();
+  else if(id==='todo') renderTodo();
+  else if(id==='progress') renderProgress();
+  else if(id==='cost') renderCost();
+  else if(id==='shop') renderShop();
+  else if(id==='idea') renderIdea();
+  else if(id==='makeup') renderMakeup();
+  else if(id==='paizhao') renderCollection('paizhao',COLLECTIONS.paizhao);
+  else if(id==='video') renderCollection('video',COLLECTIONS.video);
+  else if(id==='game') renderCollection('game',COLLECTIONS.game);
+  else if(id==='sync') renderSync();
+}
+// 已连接共享时，启动 2 秒后静默拉取云端最新
+setTimeout(()=>{ if(S.sync&&S.sync.code) syncPull(false); },2000);
+// 跨天自动刷新
+let lastDay = todayKey();
+setInterval(()=>{ const t=todayKey(); if(t!==lastDay){ lastDay=t; todoDate=t; weekAnchor=t; calYM=t.slice(0,7); render(cur); } },60000);
+// 防止双击缩放
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+</script>
+</body>
+</html>
