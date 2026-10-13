@@ -1405,10 +1405,14 @@ function renderMakeup(){
   });
 }
 
-/* =============== 双人同步（jsonblob 云端） =============== */
+/* =============== 双人同步（GitHub 通道 + jsonblob 备用通道） =============== */
 const SYNC_API='https://jsonblob.com/api/jsonBlob';
-if(!S.sync) S.sync={code:'',ts:0};
+const SYNC_FILE='wedding-data.json';
+if(!S.sync) S.sync={mode:'',code:'',repo:'',token:'',ts:0};
 if(S._ts===undefined) S._ts=0;
+// 兼容旧数据：只有 code 没有 mode → jsonblob
+if(S.sync.code&&!S.sync.mode) S.sync.mode='blob';
+const syncKeyStr=()=>S.sync.mode==='gh' ? (S.sync.repo+'|'+S.sync.token) : S.sync.code;
 
 let suppressPush=false;   // 拉取写回时避免触发自动推送
 async function apiJSON(url,opt){
@@ -1422,77 +1426,139 @@ function syncPayload(){
   return p;
 }
 function syncApply(remote){
-  const code=S.sync.code;
+  const keep=S.sync;
   S=Object.assign({},remote);
-  S.sync={code,ts:remote._ts||Date.now()};
+  S.sync=keep;
+  S.sync.ts=remote._ts||Date.now();
   suppressPush=true;
   try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
   suppressPush=false;
 }
-async function syncCreate(){
-  toast('正在创建共享空间…');
-  try{
-    const r=await apiJSON(SYNC_API,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Accept':'application/json'},
-      body:JSON.stringify(syncPayload())
-    });
-    const loc=r.headers.get('Location')||'';
-    const m=loc.match(/jsonBlob\/([A-Za-z0-9-]+)/);
-    const code=m?m[1]:loc.split('/').pop();
-    if(!code||!/^[A-Za-z0-9-]{8,}$/.test(code)) throw new Error('未获取到配对码');
-    S.sync.code=code; S.sync.ts=Date.now(); save();
-    renderSync(); toast('共享空间已创建，把配对码发给TA');
-  }catch(e){ toast('创建失败，检查网络后重试'); }
+function b64u(str){ return btoa(unescape(encodeURIComponent(str))); }
+
+/* ---- GitHub 通道 ---- */
+function ghDataURL(){
+  const [u,rest]=S.sync.repo.split('/');
+  return (rest===u+'.github.io'||rest===undefined)
+    ? `https://${u}.github.io/${SYNC_FILE}`
+    : `https://${u}.github.io/${rest}/${SYNC_FILE}`;
 }
-async function syncPush(force){
-  if(!S.sync.code) return;
-  const payload=JSON.stringify(syncPayload());
-  if(payload.length>950000 && !force){ toast('数据过大（图片过多），无法同步'); return; }
-  try{
-    if(!force){
-      const r=await apiJSON(SYNC_API+'/'+S.sync.code,{headers:{'Accept':'application/json'}});
-      const remote=await r.json();
-      if((remote._ts||0)>(S._ts||0)){ toast('云端有更新的版本，请先拉取'); return; }
+function ghAPI(path,opt={}){
+  return apiJSON('https://api.github.com/repos/'+S.sync.repo+'/contents/'+path,{
+    ...opt,
+    headers:{
+      'Accept':'application/vnd.github+json',
+      'Authorization':'Bearer '+S.sync.token,
+      ...(opt.headers||{})
     }
-    await apiJSON(SYNC_API+'/'+S.sync.code,{
-      method:'PUT',
-      headers:{'Content-Type':'application/json','Accept':'application/json'},
-      body:payload
-    });
+  });
+}
+async function ghCreate(){
+  openSheet('配置 GitHub 同步',[
+    f('输入框','GitHub 用户名','u',''),
+    f('输入框','仓库名（放 App 的那个仓库）','r','wedding'),
+    f('文本域','访问令牌 Token（Settings → Developer settings → Fine-grained tokens，权限勾选该仓库的 Contents: Read and write）','t','')
+  ],async v=>{
+    const u=v.u.trim(), r=v.r.trim(), t=v.t.trim();
+    if(!u||!r||!t) return toast('请填写完整');
+    const repo=u+'/'+r;
+    toast('正在验证…');
+    try{
+      const chk=await apiJSON('https://api.github.com/repos/'+repo,{
+        headers:{'Authorization':'Bearer '+t,'Accept':'application/vnd.github+json'}
+      });
+      const info=await chk.json();
+      if(!info.default_branch) throw new Error('bad repo');
+      S.sync={mode:'gh',code:'',repo:repo,token:t,ts:Date.now()};
+      S._ts=Date.now();
+      await ghWrite();
+      save();
+      closeSheet(); renderSync(); toast('已连接 GitHub ✓');
+    }catch(e){
+      toast('验证失败：检查用户名/仓库名/令牌是否正确');
+    }
+  });
+}
+async function ghWrite(){
+  // 先查 sha（文件可能已存在）
+  let sha=null;
+  try{
+    const r=await ghAPI(SYNC_FILE);
+    sha=(await r.json()).sha;
+  }catch(e){ /* 404 = 新文件 */ }
+  await ghAPI(SYNC_FILE,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      message:'备婚数据同步 '+new Date().toLocaleString(),
+      content:b64u(JSON.stringify(syncPayload())),
+      ...(sha?{sha}:{})
+    })
+  });
+}
+/* ---- 推送 / 拉取（按通道分发） ---- */
+async function syncPush(force){
+  if(!S.sync.mode) return;
+  const payload=JSON.stringify(syncPayload());
+  try{
+    if(S.sync.mode==='gh'){
+      if(payload.length>1900000 && !force){ toast('数据过大（图片过多），无法同步'); return; }
+      await ghWrite();
+    }else{
+      if(payload.length>950000 && !force){ toast('数据过大（图片过多），无法同步'); return; }
+      if(!force){
+        const r=await apiJSON(SYNC_API+'/'+S.sync.code,{headers:{'Accept':'application/json'}});
+        const remote=await r.json();
+        if((remote._ts||0)>(S._ts||0)){ toast('云端有更新的版本，请先拉取'); return; }
+      }
+      await apiJSON(SYNC_API+'/'+S.sync.code,{
+        method:'PUT',
+        headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body:payload
+      });
+    }
     S.sync.ts=Date.now(); save(true);
     if(force) toast('已推送到云端 ✓');
-  }catch(e){ if(force) toast('推送失败，检查网络'); }
+  }catch(e){ if(force) toast('推送失败：检查网络或令牌'); }
 }
 async function syncPull(force){
-  if(!S.sync.code) return;
+  if(!S.sync.mode) return;
   try{
-    const r=await apiJSON(SYNC_API+'/'+S.sync.code,{headers:{'Accept':'application/json'}});
-    const remote=await r.json();
+    let remote;
+    if(S.sync.mode==='gh'){
+      // 走你自己的 Pages 域名拉取（国内可访问，无需令牌）
+      const r=await fetch(ghDataURL()+'?t='+Date.now(),{cache:'no-store'});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      remote=await r.json();
+    }else{
+      const r=await apiJSON(SYNC_API+'/'+S.sync.code,{headers:{'Accept':'application/json'}});
+      remote=await r.json();
+    }
     if(!remote||!remote.settings) throw new Error('empty');
     if((remote._ts||0)<=(S._ts||0)&&!force){ if(force) toast('本地已是最新 ✓'); return; }
     if(!force&&!confirm('云端有更新的数据（'+new Date(remote._ts).toLocaleString()+'），覆盖本地？')) return;
     syncApply(remote);
     render(cur); renderSync();
     toast(force?'已从云端拉取 ✓':'已同步云端最新数据');
-  }catch(e){ if(force) toast('拉取失败，检查网络'); }
+  }catch(e){ if(force) toast('拉取失败：稍等几分钟再试（刚推送的数据有缓存延迟）'); }
 }
 // 自动同步：改动后 8 秒静默推送；启动时静默拉取
 let pushTimer=null;
 function scheduleAutoPush(){
-  if(!S.sync.code||suppressPush) return;
+  if(!S.sync.mode||suppressPush) return;
   clearTimeout(pushTimer);
   pushTimer=setTimeout(()=>{ S._ts=Date.now(); syncPush(false); },8000);
 }
 function renderSync(){
-  const has=!!S.sync.code;
+  const has=!!S.sync.mode;
+  const modeName=S.sync.mode==='gh'?'GitHub 仓库':'在线云（国际通道）';
   $('#p-sync').innerHTML=`
     <div class="ptitle">双人同步</div>
     <div class="psub">Share & Sync</div>
     ${has?`
       <div class="code-show">
-        <div class="cl">配对码 · 发给另一半</div>
-        <div class="cc">${esc(S.sync.code)}</div>
+        <div class="cl">配对串 · 发给另一半 · 通道：${modeName}</div>
+        <div class="cc" style="font-size:${S.sync.mode==='gh'?13:24}px">${esc(syncKeyStr())}</div>
       </div>
       <div class="card">
         <div class="card-head">
@@ -1502,7 +1568,7 @@ function renderSync(){
         <ul class="sync-list" style="list-style:none;padding:0;margin:0 0 12px">
           <li>· 打开 App 时自动拉取云端最新数据</li>
           <li>· 每次改动后自动推送到云端（约 8 秒后）</li>
-          <li>· 云端更新时手机上打开即会同步</li>
+          <li>· 推送后 Pages 可能有几分钟缓存延迟</li>
         </ul>
         <div class="row wrap" style="gap:8px">
           <button class="btn sm" data-sync-push>推送我的最新 ↑</button>
@@ -1517,20 +1583,26 @@ function renderSync(){
         <ul class="sync-list" style="list-style:none;padding:0;margin:0">
           <li>· 两人避免同一时间同时编辑，后保存的会覆盖先保存的</li>
           <li>· 建议一人主编辑，另一人查看 + 偶尔补充</li>
-          <li>· 图片也会同步，但图片过多会超出云端容量</li>
+          <li>· 配对串包含钥匙，只发给另一半</li>
         </ul>
         <button class="btn ghost block" style="margin-top:12px;color:#C25E5E" data-sync-off>退出共享（保留本地数据）</button>
       </div>
     `:`
       <div class="card">
-        <div class="card-head"><div class="card-title"><i></i>创建共享空间</div></div>
-        <p class="muted" style="margin:0 0 14px">把当前的全部备婚数据上传到云端，生成一个配对码。另一半输入配对码后，两人看到的就是同一份实时数据。</p>
-        <button class="btn block" data-sync-create>创建 · 生成配对码</button>
+        <div class="card-head"><div class="card-title"><i></i>方式一：GitHub 同步（国内可用 · 推荐）</div></div>
+        <p class="muted" style="margin:0 0 12px;font-size:13px">用你自己的 GitHub 仓库当云端，走你已经能访问的线路，国内网络稳定。需要生成一次访问令牌。</p>
+        <button class="btn block" data-sync-gh>配置 GitHub 通道</button>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title"><i></i>方式二：在线云配对码（需国际网络）</div></div>
+        <p class="muted" style="margin:0 0 12px;font-size:13px">免配置直接生成配对码。但此通道是国际服务，国内手机可能提示"网络连接错误"，如遇此情况请用方式一。</p>
+        <button class="btn ghost block" data-sync-create>创建配对码</button>
       </div>
       <div class="card">
         <div class="card-head"><div class="card-title"><i></i>加入对方的共享空间</div></div>
-        <input class="field" id="joinCode" placeholder="输入对方发来的配对码" style="margin-bottom:12px;font-family:ui-monospace,Menlo,monospace">
-        <button class="btn ghost block" data-sync-join>加入并拉取数据</button>
+        <p class="muted" style="margin:0 0 8px;font-size:12px">粘贴对方发来的配对串（在线云配对码 或 GitHub 配对串）</p>
+        <textarea class="ta" id="joinCode" placeholder="粘贴配对串…"></textarea>
+        <button class="btn ghost block" style="margin-top:12px" data-sync-join>加入并拉取数据</button>
         <div class="tip" style="margin-top:12px">⚠️ 加入后云端数据会<b>覆盖</b>你本机的现有记录，请确认后再操作。</div>
       </div>
       <div class="card">
@@ -1543,25 +1615,53 @@ function renderSync(){
       </div>
     `}
   `;
-  $$('[data-sync-create]',$('#p-sync')).forEach(el=>el.onclick=()=>syncCreate());
-  $$('[data-sync-join]',$('#p-sync')).forEach(el=>el.onclick=async()=>{
-    const code=$('#joinCode').value.trim();
-    if(!code) return toast('请输入配对码');
-    if(!confirm('将用云端数据覆盖本机现有记录，确定？')) return;
-    S.sync.code=code;
+  $$('[data-sync-gh]',$('#p-sync')).forEach(el=>el.onclick=()=>ghCreate());
+  $$('[data-sync-create]',$('#p-sync')).forEach(el=>el.onclick=async()=>{
+    toast('正在创建共享空间…');
     try{
-      const r=await apiJSON(SYNC_API+'/'+code,{headers:{'Accept':'application/json'}});
+      const r=await apiJSON(SYNC_API,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body:JSON.stringify(syncPayload())
+      });
+      const loc=r.headers.get('Location')||'';
+      const m=loc.match(/jsonBlob\/([A-Za-z0-9-]+)/);
+      const code=m?m[1]:loc.split('/').pop();
+      if(!code||!/^[A-Za-z0-9-]{8,}$/.test(code)) throw new Error('未获取到配对码');
+      S.sync={mode:'blob',code:code,repo:'',token:'',ts:Date.now()}; save();
+      renderSync(); toast('已创建，把配对码发给TA');
+    }catch(e){ toast('创建失败：该通道需国际网络，请改用 GitHub 通道'); }
+  });
+  $$('[data-sync-join]',$('#p-sync')).forEach(el=>el.onclick=async()=>{
+    const raw=$('#joinCode').value.trim();
+    if(!raw) return toast('请粘贴配对串');
+    if(!confirm('将用云端数据覆盖本机现有记录，确定？')) return;
+    try{
+      if(raw.includes('|')){   // GitHub 配对串
+        const [repo,token]=raw.split('|').map(s=>s.trim());
+        if(!repo||!token) throw new Error('bad');
+        S.sync={mode:'gh',code:'',repo:repo,token:token,ts:0};
+        await apiJSON('https://api.github.com/repos/'+repo,{headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'}});
+      }else{                   // jsonblob 配对码
+        S.sync={mode:'blob',code:raw,repo:'',token:'',ts:0};
+      }
+      // 拉取数据
+      const url=S.sync.mode==='gh' ? ghDataURL()+'?t='+Date.now() : SYNC_API+'/'+S.sync.code;
+      const r=await apiJSON(url,{headers:S.sync.mode==='blob'?{'Accept':'application/json'}:{},cache:'no-store'});
       const remote=await r.json();
       if(!remote||!remote.settings) throw new Error('bad');
       syncApply(remote);
       render(cur); renderSync(); toast('已加入共享空间 ✓');
-    }catch(e){ S.sync.code=''; toast('配对码无效或网络异常'); }
+    }catch(e){
+      S.sync={mode:'',code:'',repo:'',token:'',ts:0};
+      toast('配对串无效或网络异常');
+    }
   });
   $$('[data-sync-push]',$('#p-sync')).forEach(el=>el.onclick=()=>{ S._ts=Date.now(); save(); syncPush(true); });
   $$('[data-sync-pull]',$('#p-sync')).forEach(el=>el.onclick=()=>syncPull(true));
   $$('[data-sync-off]',$('#p-sync')).forEach(el=>el.onclick=()=>{
     if(confirm('退出共享？本地数据保留，不再自动同步。')){
-      S.sync={code:'',ts:0}; save(); renderSync(); toast('已退出共享');
+      S.sync={mode:'',code:'',repo:'',token:'',ts:0}; save(); renderSync(); toast('已退出共享');
     }
   });
   $$('[data-sync-export]',$('#p-sync')).forEach(el=>el.onclick=()=>{
