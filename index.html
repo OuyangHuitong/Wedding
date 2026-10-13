@@ -1633,28 +1633,52 @@ function renderSync(){
     }catch(e){ toast('创建失败：该通道需国际网络，请改用 GitHub 通道'); }
   });
   $$('[data-sync-join]',$('#p-sync')).forEach(el=>el.onclick=async()=>{
-    const raw=$('#joinCode').value.trim();
+    const raw=$('#joinCode').value.replace(/\s+/g,'');   // 去掉换行/空格，容错微信复制
     if(!raw) return toast('请粘贴配对串');
     if(!confirm('将用云端数据覆盖本机现有记录，确定？')) return;
-    try{
-      if(raw.includes('|')){   // GitHub 配对串
-        const [repo,token]=raw.split('|').map(s=>s.trim());
-        if(!repo||!token) throw new Error('bad');
-        S.sync={mode:'gh',code:'',repo:repo,token:token,ts:0};
-        await apiJSON('https://api.github.com/repos/'+repo,{headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'}});
-      }else{                   // jsonblob 配对码
-        S.sync={mode:'blob',code:raw,repo:'',token:'',ts:0};
+    if(raw.includes('|')){
+      // GitHub 配对串：仓库|令牌
+      const parts=raw.split('|');
+      const repo=parts[0], token=parts[1]||'';
+      if(!repo||!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo)) return toast('配对串格式不对：缺少用户名/仓库部分');
+      if(!token) return toast('配对串格式不对：缺少令牌部分（| 后面的内容）');
+      S.sync={mode:'gh',code:'',repo:repo,token:token,ts:0};
+      let remote=null;
+      // ① 先拉数据（走 github.io，能打开网站就能拉到）
+      try{
+        const r=await fetch(ghDataURL()+'?t='+Date.now(),{cache:'no-store'});
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        remote=await r.json();
+        if(!remote||!remote.settings) throw new Error('bad');
+      }catch(e){
+        S.sync={mode:'',code:'',repo:'',token:'',ts:0};
+        return toast('拉取失败：请确认配对串完整复制（从仓库名到令牌结尾），或对方刚推送请过几分钟再试');
       }
-      // 拉取数据
-      const url=S.sync.mode==='gh' ? ghDataURL()+'?t='+Date.now() : SYNC_API+'/'+S.sync.code;
-      const r=await apiJSON(url,{headers:S.sync.mode==='blob'?{'Accept':'application/json'}:{},cache:'no-store'});
-      const remote=await r.json();
-      if(!remote||!remote.settings) throw new Error('bad');
+      // ② 数据到手，加入成功
       syncApply(remote);
-      render(cur); renderSync(); toast('已加入共享空间 ✓');
-    }catch(e){
-      S.sync={mode:'',code:'',repo:'',token:'',ts:0};
-      toast('配对串无效或网络异常');
+      render(cur); renderSync();
+      // ③ 令牌验证放后台：失败不影响加入，仅提示推送受限
+      apiJSON('https://api.github.com/repos/'+repo,{
+        headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'}
+      }).then(r=>{
+        if(!r.ok) throw new Error();
+        toast('已加入共享空间 ✓');
+      }).catch(()=>{
+        toast('已加入，可查看数据；但当前网络无法推送，你改动后对方可能收不到');
+      });
+    }else{
+      // jsonblob 配对码（备用通道）
+      S.sync={mode:'blob',code:raw,repo:'',token:'',ts:0};
+      try{
+        const r=await apiJSON(SYNC_API+'/'+S.sync.code,{headers:{'Accept':'application/json'}});
+        const remote=await r.json();
+        if(!remote||!remote.settings) throw new Error('bad');
+        syncApply(remote);
+        render(cur); renderSync(); toast('已加入共享空间 ✓');
+      }catch(e){
+        S.sync={mode:'',code:'',repo:'',token:'',ts:0};
+        toast('该通道需国际网络；国内请让对方改用 GitHub 通道');
+      }
     }
   });
   $$('[data-sync-push]',$('#p-sync')).forEach(el=>el.onclick=()=>{ S._ts=Date.now(); save(); syncPush(true); });
