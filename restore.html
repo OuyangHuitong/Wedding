@@ -7,17 +7,20 @@
 <style>
 :root{--bg:#FBF7F4;--card:#fff;--ink:#3A3335;--sub:#8C7F82;--accent:#C07D8A;--line:rgba(0,0,0,.07)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;padding:24px 18px 40px;line-height:1.6}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;padding:22px 16px 40px;line-height:1.6}
 .wrap{max-width:520px;margin:0 auto}
 h1{font-size:20px;margin:0 0 4px;letter-spacing:.5px}
-.sub{color:var(--sub);font-size:13px;margin-bottom:20px}
-.card{background:var(--card);border-radius:16px;padding:18px 16px;box-shadow:0 2px 14px rgba(150,120,125,.08);margin-bottom:14px}
+.sub{color:var(--sub);font-size:12.5px;margin-bottom:18px}
+.card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 2px 14px rgba(150,120,125,.08);margin-bottom:12px}
 .btn{display:block;width:100%;padding:14px;border:0;border-radius:12px;background:var(--accent);color:#fff;font-size:15px;margin:10px 0}
 .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn:disabled{opacity:.5}
 .mut{color:var(--sub);font-size:12.5px}
 .ok{color:#4E8C6A}.bad{color:#C25E5E}
-ul{margin:6px 0 0;padding-left:18px;font-size:13px;color:var(--sub)}
-.stat{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:7px 0;font-size:13.5px}
+.bar{height:8px;background:rgba(192,125,138,.15);border-radius:6px;overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+ul{margin:6px 0 0;padding-left:18px;font-size:12.5px;color:var(--sub)}
+.stat{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:7px 0;font-size:13px;gap:10px}
 </style>
 </head>
 <body>
@@ -25,81 +28,149 @@ ul{margin:6px 0 0;padding-left:18px;font-size:13px;color:var(--sub)}
   <h1>数据修复工具</h1>
   <div class="sub">Wedding Workbench · Recovery</div>
   <div class="card">
-    <div id="msg" class="mut">正在检查…</div>
+    <div id="msg" class="mut">正在连接…</div>
+    <div class="bar"><i id="pg"></i></div>
     <div id="stat" style="margin-top:12px"></div>
   </div>
-  <div class="card">
-    <div style="font-weight:600">怎么用</div>
-    <ul>
-      <li>打开本页 → 点「一键恢复完整数据」</li>
-      <li>看到绿色的"恢复成功"后，点下面的按钮回到工作台</li>
-      <li>如果工作台页面是旧的，关闭它重新打开一次</li>
-    </ul>
-    <div class="mut" style="margin-top:10px">本工具只在你自己手机里操作，不会删除任何东西；如果恢复后仍缺内容，说明那部分从未成功上传过。</div>
+  <div class="card" id="ops" style="display:none">
+    <div style="font-weight:600;margin-bottom:6px">选择恢复方式</div>
+    <div class="mut">推荐「完整恢复」；若手机提示空间不足，再选「仅文字」。</div>
+    <button class="btn" id="do">完整恢复（含全部图片）</button>
+    <button class="btn ghost" id="doLite">仅恢复文字内容（体积小，秒完成）</button>
+    <button class="btn ghost" id="back">打开工作台</button>
   </div>
-  <button class="btn" id="do" style="display:none">一键恢复完整数据</button>
-  <button class="btn ghost" id="back" style="display:none">打开工作台</button>
+  <div class="card">
+    <div style="font-weight:600">常见问题</div>
+    <ul>
+      <li>卡在下载很久：文件含几十张图片较大，已走国内加速线路，请等进度条走完</li>
+      <li>超过 3 分钟没动静：换 Wi-Fi 再试，或关掉 VPN / 加速器</li>
+      <li>本工具只读写你自己手机里的本机存档，不会删除任何东西</li>
+    </ul>
+  </div>
 </div>
 <script>
-const KEY='wedding_dash_v1', FILE='wedding-data.json';
+const KEY='wedding_dash_v1';
 const $=s=>document.querySelector(s);
+const SOURCES=[
+  ['国内加速 CDN','https://cdn.jsdelivr.net/gh/OuyangHuitong/Wedding@main/wedding-data.json'],
+  ['备用加速','https://fastly.jsdelivr.net/gh/OuyangHuitong/Wedding@main/wedding-data.json'],
+  ['GitHub 直连','./wedding-data.json']
+];
+function setMsg(t){ $('#msg').innerHTML=t; }
+function prog(p){ $('#pg').style.width=Math.max(0,Math.min(100,p))+'%'; }
 function count(d){
   const n=k=>(d[k]||[]).length;
   let img=0;
   ['ideas','progress','shopping','paizhao','video','game'].forEach(k=>(d[k]||[]).forEach(x=>img+=(x.imgs||[]).length));
   return {ideas:n('ideas'),prog:n('progress'),shop:n('shopping'),cost:n('costs'),pz:n('paizhao'),vd:n('video'),gm:n('game'),img};
 }
-function write(obj){
-  localStorage.setItem(KEY,JSON.stringify(obj));
+async function tryFetch(url){
+  const r=await fetch(url+(url.indexOf('?')<0?'?t=':'&t=')+Date.now(),{cache:'no-store'});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const len=Number(r.headers.get('content-length')||0);
+  if(!r.body) return await r.json();
+  const rd=r.body.getReader(); const chunks=[]; let got=0;
+  for(;;){
+    const {done,value}=await rd.read();
+    if(done) break;
+    chunks.push(value); got+=value.length;
+    prog(len?got/len*100:Math.min(95,got/50000));
+  }
+  prog(100);
+  const buf=new Uint8Array(got); let off=0;
+  for(const c of chunks){ buf.set(c,off); off+=c.length; }
+  return JSON.parse(new TextDecoder('utf-8').decode(buf));
+}
+async function load(){
+  for(const pair of SOURCES){
+    const name=pair[0], url=pair[1];
+    try{
+      setMsg('正在通过「'+name+'」下载云端数据…'); prog(2);
+      const t0=Date.now();
+      const d=await tryFetch(url);
+      if(!d||!d.settings) throw new Error('数据为空');
+      return {d:d,sec:((Date.now()-t0)/1000).toFixed(1),src:name};
+    }catch(e){ prog(0); }
+  }
+  return null;
 }
 function recompressOne(src){
   return new Promise((res,rej)=>{
     const im=new Image();
-    im.onload=()=>{const max=640,sc=Math.min(1,max/Math.max(im.width,im.height));
-      const c=document.createElement('canvas');c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);
-      c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',0.55));};
-    im.onerror=rej;im.src=src;});
+    im.onload=()=>{
+      const max=640, sc=Math.min(1,max/Math.max(im.width,im.height));
+      const c=document.createElement('canvas');
+      c.width=Math.round(im.width*sc); c.height=Math.round(im.height*sc);
+      c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+      res(c.toDataURL('image/jpeg',0.55));
+    };
+    im.onerror=rej; im.src=src;
+  });
 }
 async function recompressAll(d){
   const list=[];
-  ['ideas','progress','shopping','paizhao','video','game'].forEach(k=>(d[k]||[]).forEach(o=>{if(o.imgs&&o.imgs.length)list.push(o)}));
-  if(d.makeup)Object.keys(d.makeup).forEach(k=>{const m=d.makeup[k];if(m&&m.imgs&&m.imgs.length)list.push(m);
-    if(m&&m.fields)Object.keys(m.fields).forEach(f=>{const v=m.fields[f];if(v&&v.imgs&&v.imgs.length)list.push(v)})});
-  for(const o of list) for(let i=0;i<o.imgs.length;i++){
-    try{ o.imgs[i]=await recompressOne(o.imgs[i]); }catch(e){}
+  ['ideas','progress','shopping','paizhao','video','game'].forEach(k=>(d[k]||[]).forEach(o=>{ if(o.imgs&&o.imgs.length) list.push(o); }));
+  if(d.makeup) Object.keys(d.makeup).forEach(k=>{
+    const m=d.makeup[k];
+    if(m&&m.imgs&&m.imgs.length) list.push(m);
+    if(m&&m.fields) Object.keys(m.fields).forEach(f=>{ const v=m.fields[f]; if(v&&v.imgs&&v.imgs.length) list.push(v); });
+  });
+  for(const o of list){
+    for(let i=0;i<o.imgs.length;i++){ try{ o.imgs[i]=await recompressOne(o.imgs[i]); }catch(e){} }
   }
 }
-(async()=>{
-  let remote=null,local=null;
+function stripImgs(d){
+  const s=JSON.parse(JSON.stringify(d));
+  const clean=o=>{ if(o&&Array.isArray(o.imgs)) o.imgs=[]; };
+  ['ideas','progress','shopping','paizhao','video','game'].forEach(k=>(s[k]||[]).forEach(clean));
+  if(s.makeup) Object.keys(s.makeup).forEach(k=>{
+    const m=s.makeup[k];
+    if(!m) return;
+    clean(m);
+    if(m.fields) Object.keys(m.fields).forEach(f=>clean(m.fields[f]));
+  });
+  return s;
+}
+function localSync(){
+  try{ const l=JSON.parse(localStorage.getItem(KEY)||'null'); return (l&&l.sync)||null; }catch(e){ return null; }
+}
+function writeData(obj){
+  obj.sync=localSync(); obj._ts=Date.now();
+  localStorage.setItem(KEY,JSON.stringify(obj));
+}
+(async function(){
+  let local=null;
   try{ local=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){}
-  try{
-    const r=await fetch('./'+FILE+'?t='+Date.now(),{cache:'no-store'});
-    remote=await r.json();
-  }catch(e){ $('#msg').innerHTML='<span class="bad">无法读取云端数据：'+e.message+'</span>'; return; }
-  if(!remote||!remote.settings){ $('#msg').innerHTML='<span class="bad">云端数据为空</span>'; return; }
-  const rc=count(remote), lc=local?count(local):null;
-  $('#msg').innerHTML='云端已找到完整数据。本机当前的内容量如下，点下方按钮把云端的完整数据灌回本机。';
-  $('#stat').innerHTML=
-    (lc?`<div class="stat"><span>本机现在</span><span>${lc.img} 张图 · 灵感${lc.ideas} · 拍照${lc.pz}</span></div>`:'')+
-    `<div class="stat"><span>云端完整版</span><span>${rc.img} 张图 · 灵感${rc.ideas} · 拍照${rc.pz}</span></div>`+
-    `<div class="stat"><span>明细</span><span>待购${rc.shop} · 开销${rc.cost} · 视频${rc.vd} · 游戏${rc.gm} · 进度${rc.prog}</span></div>`;
-  const btn=$('#do'); btn.style.display='block';
-  btn.onclick=async()=>{
-    btn.disabled=true; btn.textContent='正在写入…';
-    const keep=(local&&local.sync)||null;
-    remote.sync=keep; remote._ts=Date.now();
+  const got=await load();
+  if(!got){
+    setMsg('<span class="bad">连接失败：请检查网络后重试，或换 Wi-Fi / 关闭 VPN。</span>');
+    return;
+  }
+  const remote=got.d, rc=count(remote), lc=local?count(local):null;
+  setMsg('云端完整数据已下载好（'+got.src+' · '+got.sec+'秒）。点下面按钮写回本机：');
+  let html='';
+  if(lc) html+='<div class="stat"><span>本机现在</span><span>'+lc.img+' 张图 · 灵感'+lc.ideas+' · 拍照'+lc.pz+'</span></div>';
+  html+='<div class="stat"><span>云端完整版</span><span>'+rc.img+' 张图 · 灵感'+rc.ideas+' · 拍照'+rc.pz+'</span></div>';
+  html+='<div class="stat"><span>明细</span><span>进度'+rc.prog+' · 待购'+rc.shop+' · 开销'+rc.cost+' · 视频'+rc.vd+' · 游戏'+rc.gm+'</span></div>';
+  $('#stat').innerHTML=html;
+  $('#ops').style.display='block';
+  $('#do').onclick=async()=>{
+    $('#do').disabled=true; $('#do').textContent='正在写入…';
     try{
-      write(remote);
-      $('#msg').innerHTML='<span class="ok">恢复成功 ✓ 现在回到工作台即可看到完整内容。</span>';
+      writeData(remote);
+      setMsg('<span class="ok">恢复成功 ✓ 现在去打开工作台即可看到完整内容。</span>');
     }catch(e){
-      $('#msg').innerHTML='正在压缩图片以腾出空间…';
-      await recompressAll(remote); remote._ts=Date.now();
-      try{ write(remote); $('#msg').innerHTML='<span class="ok">恢复成功 ✓（图片已自动压缩以适配手机存储）</span>'; }
-      catch(e2){ $('#msg').innerHTML='<span class="bad">写入失败：手机存储空间不足，请先在浏览器设置里清理缓存。</span>'; }
+      setMsg('空间不足，正在自动压缩图片…');
+      await recompressAll(remote);
+      try{ writeData(remote); setMsg('<span class="ok">恢复成功 ✓（图片已压缩以适应手机存储）</span>'); }
+      catch(e2){ setMsg('<span class="bad">仍写不进去：请清理浏览器缓存后重试。</span>'); }
     }
-    $('#back').style.display='block';
   };
-  $('#back').onclick=()=>location.href='./index.html?v='+Date.now();
+  $('#doLite').onclick=()=>{
+    try{ writeData(stripImgs(remote)); setMsg('<span class="ok">文字版已恢复 ✓（图片暂不包含）</span>'); }
+    catch(e){ setMsg('<span class="bad">写入失败：'+e.message+'</span>'); }
+  };
+  $('#back').onclick=()=>{ location.href='./index.html?v='+Date.now(); };
 })();
 </script>
 </body>
