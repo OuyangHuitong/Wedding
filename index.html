@@ -1540,7 +1540,19 @@ function syncApply(remote){
   S=mergeData(syncPayload(),remote);   // 合并而非覆盖：两边的条目、图片都保留
   S.sync=keep;
   suppressPush=true;
-  try{ S._ts=Date.now(); localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
+  let json='';
+  try{ json=JSON.stringify(S); }catch(e){}
+  try{ localStorage.setItem(KEY,json); }
+  catch(e){
+    // 空间不足：先压缩所有图片再试一次，确保最新数据真正落到本机
+    recompressAll().then(()=>{
+      let j2='';
+      try{ j2=JSON.stringify(S); }catch(err){}
+      try{ localStorage.setItem(KEY,j2); toast('已合并，并自动压缩图片以腾出空间'); }
+      catch(err){ toast('手机存储空间不足，请删除部分图片'); }
+      if(cur==='sync') renderSync();
+    });
+  }
   suppressPush=false;
 }
 function b64u(str){ return btoa(unescape(encodeURIComponent(str))); }
@@ -1663,10 +1675,12 @@ async function syncPull(force){
     if(!remote||!remote.settings) throw new Error('empty');
     if((remote._ts||0)<=(S._ts||0)&&!force){ if(force) toast('本地已是最新 ✓'); return; }
     // 安全合并：本地内容与云端内容合并，只增不减，不会丢任何一边的内容
+    const before=JSON.stringify(syncPayload());
     syncApply(remote);
+    const changed=JSON.stringify(syncPayload())!==before;
     render(cur); renderSync();
     toast(force?'已合并云端最新数据 ✓':'已合并云端最新数据');
-    if(S.sync.mode) setTimeout(()=>syncPush(false),1500);   // 合并结果回推云端，双方收敛到同一份
+    if(S.sync.mode&&changed) setTimeout(()=>syncPush(false),1500);   // 合并结果回推云端，双方收敛到同一份
   }catch(e){ if(force) toast('拉取失败：稍等几分钟再试（刚推送的数据有缓存延迟）'); }
 }
 // 自动同步：改动后 8 秒静默推送；启动时静默拉取
@@ -2018,8 +2032,11 @@ function render(id){
   else if(id==='game') renderCollection('game',COLLECTIONS.game);
   else if(id==='sync') renderSync();
 }
-// 已连接共享时，启动 2 秒后静默拉取云端最新
-setTimeout(()=>{ if(S.sync&&S.sync.code) syncPull(false); },2000);
+// 已连接共享时（GitHub 通道或在线云），启动 2 秒后静默拉取并合并云端最新
+// 现在是合并式同步，不会覆盖本地内容，所以每次启动都放心拉取
+setTimeout(()=>{ if(S.sync&&(S.sync.code||S.sync.mode)) syncPull(true); },2000);
+// 之后每 2 分钟检查一次（仅在云端确实更新时才合并），避免无谓流量
+setInterval(()=>{ if(S.sync&&(S.sync.code||S.sync.mode)) syncPull(false); },120000);
 // 跨天自动刷新
 let lastDay = todayKey();
 setInterval(()=>{ const t=todayKey(); if(t!==lastDay){ lastDay=t; todoDate=t; weekAnchor=t; calYM=t.slice(0,7); render(cur); } },60000);
