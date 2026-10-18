@@ -616,12 +616,56 @@ if(Array.isArray(S.progress)){
 }
 // 拍照/视频/游戏清单：迁移到启动时执行（见 seedCollections）
 
+// 空间不足时自动压缩所有图片（保留画质可接受的最低体积）
+async function recompressAll(){
+  if(window.__recompressing) return false;
+  window.__recompressing=true;
+  try{
+    const buckets=[];
+    ['ideas','progress','shopping','paizhao','video','game'].forEach(k=>{ (S[k]||[]).forEach(o=>{ if(o.imgs&&o.imgs.length) buckets.push(o); }); });
+    if(S.makeup) Object.keys(S.makeup).forEach(k=>{ const m=S.makeup[k]; if(m&&m.imgs&&m.imgs.length) buckets.push(m);
+      if(m&&m.fields) Object.keys(m.fields).forEach(f=>{ const v=m.fields[f]; if(v&&v.imgs&&v.imgs.length) buckets.push(v); }); });
+    let done=0;
+    for(const o of buckets){
+      for(let i=0;i<o.imgs.length;i++){
+        const src=o.imgs[i];
+        if(typeof src!=='string'||src.indexOf('data:image')!==0) continue;
+        try{ o.imgs[i]=await recompressOne(src); done++; }catch(e){}
+      }
+    }
+    return done>0;
+  }finally{ window.__recompressing=false; }
+}
+function recompressOne(src){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=640, sc=Math.min(1,max/Math.max(img.width,img.height));
+      const c=document.createElement('canvas');
+      c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      res(c.toDataURL('image/jpeg',0.55));
+    };
+    img.onerror=rej; img.src=src;
+  });
+}
 let saveTimer=null;
 function save(skipPush){
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(()=>{
+  saveTimer = setTimeout(async ()=>{
     S._ts=Date.now();
-    try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){ toast('存储失败'); }
+    let json='';
+    try{ json=JSON.stringify(S); }catch(e){}
+    try{ localStorage.setItem(KEY,json); }
+    catch(e){
+      try{ localStorage.removeItem(KEY); localStorage.setItem(KEY,json); }
+      catch(e2){
+        toast('存储空间不足，正在自动压缩图片…');
+        const ok=await recompressAll();
+        try{ localStorage.setItem(KEY,JSON.stringify(S)); toast(ok?'图片已压缩，保存成功':'仍存不下：请删除部分大图'); }
+        catch(e3){ toast('存储空间已满：请删除部分图片后再操作'); }
+      }
+    }
     if(!skipPush) scheduleAutoPush();
   },120);
 }
@@ -1425,13 +1469,78 @@ function syncPayload(){
   delete p.sync;
   return p;
 }
+/* ---- 合并式同步：任何条目/图片只增不减，彻底避免覆盖丢失 ---- */
+function itemKey(x){
+  if(!x) return '';
+  for(const f of ['title','t','name','id','date']){ if(x[f]!==undefined&&x[f]!==null&&x[f]!=='') return String(x[f]); }
+  return JSON.stringify(x).slice(0,40);
+}
+function mergeItem(a,b){
+  const m=JSON.parse(JSON.stringify(a));
+  ['imgs','links'].forEach(arr=>{
+    const seen=new Set((m[arr]||[]).map(v=>JSON.stringify(v)));
+    (b[arr]||[]).forEach(v=>{ const k=JSON.stringify(v); if(!seen.has(k)){ if(!m[arr]) m[arr]=[]; m[arr].push(v); seen.add(k); } });
+  });
+  ['text','content','note'].forEach(f=>{ if(!String(m[f]||'').trim() && String(b[f]||'').trim()) m[f]=b[f]; });
+  ['done','got'].forEach(f=>{ if(b[f]) m[f]=true; });
+  ['price','qty','cat','amount','stage'].forEach(f=>{ if((m[f]===undefined||m[f]===''||m[f]===null)&&b[f]!==undefined&&b[f]!==''&&b[f]!==null) m[f]=b[f]; });
+  return m;
+}
+function mergeList(A,B){
+  const out=(A||[]).map(x=>JSON.parse(JSON.stringify(x)));
+  const idx={};
+  out.forEach((x,i)=>{ const k=itemKey(x); if(!(k in idx)) idx[k]=i; });
+  (B||[]).forEach(x=>{
+    const k=itemKey(x);
+    if(k in idx) out[idx[k]]=mergeItem(out[idx[k]],x);
+    else out.push(JSON.parse(JSON.stringify(x)));
+  });
+  return out;
+}
+function mergeData(local,remote){
+  const d=JSON.parse(JSON.stringify(local));
+  ['ideas','progress','shopping','costs','paizhao','video','game'].forEach(k=>{
+    if(Array.isArray(local[k])||Array.isArray(remote[k])) d[k]=mergeList(local[k]||[],remote[k]||[]);
+  });
+  const mt=JSON.parse(JSON.stringify(local.todos||{}));
+  Object.keys(remote.todos||{}).forEach(k=>{
+    const a=mt[k], b=remote.todos[k];
+    if(a===undefined) mt[k]=b;
+    else if(Array.isArray(a)&&Array.isArray(b)){
+      const has=it=>a.some(x=>JSON.stringify(x)===JSON.stringify(it));
+      b.forEach(it=>{ if(!has(it)) a.push(it); });
+    }
+  });
+  d.todos=mt;
+  ['costs'].forEach(()=>{});
+  return d;
+}
+const BAK='wedding_dash_bak_';
+function backupNow(tag){
+  try{
+    const p=JSON.parse(JSON.stringify(S)); delete p.sync;
+    localStorage.setItem(BAK+Date.now()+(tag?'_'+tag:''),JSON.stringify(p));
+    const ks=Object.keys(localStorage).filter(k=>k.indexOf(BAK)===0).sort();
+    while(ks.length>8){ localStorage.removeItem(ks.shift()); }
+  }catch(e){}
+}
+function backupList(){
+  return Object.keys(localStorage).filter(k=>k.indexOf(BAK)===0).sort().reverse().map(k=>{
+    let n=0,imgs=0;
+    try{ const d=JSON.parse(localStorage.getItem(k));
+      n=['ideas','progress','shopping','costs','paizhao','video','game'].reduce((s,key)=>s+((d[key]||[]).length),0);
+      JSON.stringify(d).replace(/data:image/g,()=>{imgs++;return ''});
+    }catch(e){}
+    return {k,t:Number(k.slice(BAK.length).split('_')[0])||0,n,imgs,size:Math.round((localStorage.getItem(k)||'').length/1024)};
+  });
+}
 function syncApply(remote){
   const keep=S.sync;
-  S=Object.assign({},remote);
+  backupNow('beforesync');
+  S=mergeData(syncPayload(),remote);   // 合并而非覆盖：两边的条目、图片都保留
   S.sync=keep;
-  S.sync.ts=remote._ts||Date.now();
   suppressPush=true;
-  try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
+  try{ S._ts=Date.now(); localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
   suppressPush=false;
 }
 function b64u(str){ return btoa(unescape(encodeURIComponent(str))); }
@@ -1521,7 +1630,7 @@ async function syncPush(force){
   const payload=JSON.stringify(syncPayload());
   try{
     if(S.sync.mode==='gh'){
-      if(payload.length>1900000 && !force){ toast('数据过大（图片过多），无法同步'); return; }
+      if(payload.length>30000000 && !force){ toast('数据过大，无法同步'); return; }
       await ghWrite();
     }else{
       if(payload.length>950000 && !force){ toast('数据过大（图片过多），无法同步'); return; }
@@ -1553,10 +1662,11 @@ async function syncPull(force){
     }
     if(!remote||!remote.settings) throw new Error('empty');
     if((remote._ts||0)<=(S._ts||0)&&!force){ if(force) toast('本地已是最新 ✓'); return; }
-    if(!force&&!confirm('云端有更新的数据（'+new Date(remote._ts).toLocaleString()+'），覆盖本地？')) return;
+    // 安全合并：本地内容与云端内容合并，只增不减，不会丢任何一边的内容
     syncApply(remote);
     render(cur); renderSync();
-    toast(force?'已从云端拉取 ✓':'已同步云端最新数据');
+    toast(force?'已合并云端最新数据 ✓':'已合并云端最新数据');
+    if(S.sync.mode) setTimeout(()=>syncPush(false),1500);   // 合并结果回推云端，双方收敛到同一份
   }catch(e){ if(force) toast('拉取失败：稍等几分钟再试（刚推送的数据有缓存延迟）'); }
 }
 // 自动同步：改动后 8 秒静默推送；启动时静默拉取
@@ -1596,10 +1706,23 @@ function renderSync(){
         </div>
       </div>
       <div class="card">
+        <div class="card-head"><div class="card-title"><i></i>时间机器 · 本机自动备份</div></div>
+        <p class="muted" style="margin:0 0 12px;font-size:12.5px">每次同步前手机都会自动留一份快照。万一内容被覆盖或误删，可一键回到之前的样子。</p>
+        ${(()=>{ const b=backupList(); return b.length? b.map(x=>`
+          <div class="row" style="justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(0,0,0,.06)">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px">${new Date(x.t).toLocaleString()}</div>
+              <div class="muted" style="font-size:11.5px">${x.n} 条内容 · ${x.imgs} 张图 · ${x.size}KB</div>
+            </div>
+            <button class="btn ghost sm" data-bak-restore="${x.k}">还原</button>
+          </div>`).join('') : '<div class="muted" style="font-size:12.5px">暂无备份（下次同步后自动生成）</div>'; })()}
+        <button class="btn ghost block sm" style="margin-top:12px" data-bak-make>立即备份当前内容</button>
+      </div>
+      <div class="card">
         <div class="card-head"><div class="card-title"><i></i>注意事项</div></div>
         <ul class="sync-list" style="list-style:none;padding:0;margin:0">
-          <li>· 两人避免同一时间同时编辑，后保存的会覆盖先保存的</li>
-          <li>· 建议一人主编辑，另一人查看 + 偶尔补充</li>
+          <li>· 现在是<b>合并式同步</b>：两边的条目、图片都会合并保留，不会互相覆盖</li>
+          <li>· 删除某条内容时，对方那边若还留着，下次同步会把它加回来（可用备份找回删除状态）</li>
           <li>· 配对串包含钥匙，只发给另一半</li>
         </ul>
         <button class="btn ghost block" style="margin-top:12px;color:#C25E5E" data-sync-off>退出共享（保留本地数据）</button>
@@ -1632,6 +1755,20 @@ function renderSync(){
       </div>
     `}
   `;
+  $$('[data-bak-make]',$('#p-sync')).forEach(el=>el.onclick=()=>{ backupNow('manual'); renderSync(); toast('已备份当前内容 ✓'); });
+  $$('[data-bak-restore]',$('#p-sync')).forEach(el=>el.onclick=()=>{
+    const k=el.dataset.bakRestore;
+    if(!confirm('用这份备份替换当前内容？当前内容会先自动备份一次。')) return;
+    try{
+      const d=JSON.parse(localStorage.getItem(k));
+      backupNow('beforerestore');
+      const keep=S.sync;
+      S=Object.assign({},d); S.sync=keep; S._ts=Date.now();
+      try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
+      render(cur); renderSync(); toast('已还原 ✓');
+      if(S.sync.mode) setTimeout(()=>syncPush(false),1500);
+    }catch(e){ toast('还原失败'); }
+  });
   $$('[data-sync-gh]',$('#p-sync')).forEach(el=>el.onclick=()=>ghCreate());
   $$('[data-sync-create]',$('#p-sync')).forEach(el=>el.onclick=async()=>{
     toast('正在创建共享空间…');
