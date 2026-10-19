@@ -660,7 +660,9 @@ function save(skipPush){
     catch(e){
       try{ localStorage.removeItem(KEY); localStorage.setItem(KEY,json); }
       catch(e2){
-        toast('存储空间不足，正在自动压缩图片…');
+        toast('存储空间不足，正在自动整理…');
+        await cleanDupImages(false);            // 先去重，去重后往往就放得下了
+        try{ localStorage.setItem(KEY,JSON.stringify(S)); toast('已清理重复图片，保存成功'); return; }catch(e4){}
         const ok=await recompressAll();
         try{ localStorage.setItem(KEY,JSON.stringify(S)); toast(ok?'图片已压缩，保存成功':'仍存不下：请删除部分大图'); }
         catch(e3){ toast('存储空间已满：请删除部分图片后再操作'); }
@@ -773,8 +775,10 @@ function bindMedia(pageEl,ctxPrefix,rerender){
     e.stopPropagation();
     const full=el.dataset.mgdel; const [ctx,i]=splitLast(full);
     const ref=ctxRef(ctx); if(!ref.obj) return;
-    if(!confirm('删除这张图片？')) return;
+    if(!confirm('删除这张图片？删除后同步时不会再从对方那里加回来。')) return;
+    const gone=ref.obj.imgs[+i];
     ref.obj.imgs.splice(+i,1); save(); rerender(); toast('已删除');
+    if(gone) markDeleted(gone);
   });
   $$('[data-view]',pageEl).forEach(el=>el.onclick=e=>{
     if(e.target.closest('.mg-del')||e.target.closest('.lk-x')) return;
@@ -1469,6 +1473,84 @@ function syncPayload(){
   delete p.sync;
   return p;
 }
+/* ---- 图片指纹去重：认出同一张照片的不同压缩版本 ---- */
+function ahashOf(src){
+  return new Promise(res=>{
+    if(typeof src!=='string'||src.indexOf('data:image')!==0) return res(null);
+    const im=new Image();
+    im.onload=()=>{
+      try{
+        const c=document.createElement('canvas'); c.width=8; c.height=8;
+        const g=c.getContext('2d'); g.drawImage(im,0,0,8,8);
+        const d=g.getImageData(0,0,8,8).data; const px=[];
+        for(let i=0;i<d.length;i+=4) px.push(d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114);
+        const avg=px.reduce((a,b)=>a+b,0)/px.length;
+        res(px.map(p=>p>avg?'1':'0').join(''));
+      }catch(e){ res(null); }
+    };
+    im.onerror=()=>res(null); im.src=src;
+  });
+}
+function hamming(a,b){ let n=0; for(let i=0;i<a.length;i++) if(a[i]!==b[i]) n++; return n; }
+async function hashList(arr){ const out=[]; for(const s of arr) out.push(await ahashOf(s)); return out; }
+async function dedupeImgArr(arr){         // 同一张只留体积最大的（画质最好）
+  if(!arr||arr.length<2) return {list:arr||[],removed:0};
+  const hs=await hashList(arr);
+  const keep=new Array(arr.length).fill(true); let removed=0;
+  for(let i=0;i<arr.length;i++){
+    if(!keep[i]||!hs[i]) continue;
+    for(let j=i+1;j<arr.length;j++){
+      if(!keep[j]||!hs[j]) continue;
+      if(hamming(hs[i],hs[j])<=4){
+        if(arr[j].length>arr[i].length){ keep[i]=false; removed++; break; }
+        keep[j]=false; removed++;
+      }
+    }
+  }
+  return {list:arr.filter((_,i)=>keep[i]),removed};
+}
+function imgTargets(){
+  const t=[];
+  ['ideas','progress','shopping','paizhao','video','game'].forEach(k=>(S[k]||[]).forEach(o=>{ if(o&&Array.isArray(o.imgs)) t.push(o); }));
+  if(S.makeup) Object.keys(S.makeup).forEach(k=>{
+    const m=S.makeup[k]; if(!m) return;
+    if(Array.isArray(m.imgs)) t.push(m);
+    if(m.fields) Object.keys(m.fields).forEach(f=>{ const v=m.fields[f]; if(v&&Array.isArray(v.imgs)) t.push(v); });
+  });
+  return t;
+}
+async function cleanDupImages(show){
+  const t=imgTargets(); let removed=0;
+  for(const o of t){
+    const r=await dedupeImgArr(o.imgs);
+    if(r.removed){ o.imgs=r.list; removed+=r.removed; }
+  }
+  if(removed){ save(); if(typeof cur!=='undefined') render(cur); }
+  if(show) toast(removed?('已清理 '+removed+' 张重复图片 ✓'):'没有发现重复图片');
+  return removed;
+}
+async function markDeleted(src){          // 删除记忆：删过的图不会因同步再回来
+  const h=await ahashOf(src); if(!h) return;
+  S._del=S._del||[]; S._del.push(h);
+  if(S._del.length>300) S._del=S._del.slice(-300);
+  save();
+}
+async function applyDeleted(){
+  const del=S._del||[]; if(!del.length) return 0;
+  let n=0;
+  for(const o of imgTargets()){
+    if(!o.imgs||!o.imgs.length) continue;
+    const hs=await hashList(o.imgs); const keep=[];
+    for(let i=0;i<o.imgs.length;i++){
+      const bad=hs[i]&&del.some(d=>hamming(d,hs[i])<=4);
+      if(bad) n++; else keep.push(o.imgs[i]);
+    }
+    o.imgs=keep;
+  }
+  if(n){ save(); if(typeof cur!=='undefined') render(cur); }
+  return n;
+}
+
 /* ---- 合并式同步：任何条目/图片只增不减，彻底避免覆盖丢失 ---- */
 function itemKey(x){
   if(!x) return '';
@@ -1554,6 +1636,8 @@ function syncApply(remote){
     });
   }
   suppressPush=false;
+  // 合并后自动清理：删过的图不加回来 + 同一张照片的不同压缩版本只留一张
+  setTimeout(()=>{ applyDeleted().then(()=>cleanDupImages(false)); },300);
 }
 function b64u(str){ return btoa(unescape(encodeURIComponent(str))); }
 
@@ -1714,6 +1798,7 @@ function renderSync(){
         <div class="row wrap" style="gap:8px">
           <button class="btn sm" data-sync-push>推送我的最新 ↑</button>
           <button class="btn ghost sm" data-sync-pull>拉取云端最新 ↓</button>
+          <button class="btn ghost sm" data-sync-clean>清理重复图片</button>
         </div>
         <div class="muted" style="margin-top:10px;font-size:11.5px">
           云端最后更新：${S.sync.ts?new Date(S.sync.ts).toLocaleString():'—'}
@@ -1769,6 +1854,13 @@ function renderSync(){
       </div>
     `}
   `;
+  $$('[data-sync-clean]',$('#p-sync')).forEach(el=>el.onclick=async()=>{
+    el.disabled=true; el.textContent='正在识别…';
+    toast('正在逐个比对图片，请稍候…');
+    const n=await cleanDupImages(true);
+    el.disabled=false; el.textContent='清理重复图片';
+    if(n){ renderSync(); setTimeout(()=>syncPush(false),1200); }
+  });
   $$('[data-bak-make]',$('#p-sync')).forEach(el=>el.onclick=()=>{ backupNow('manual'); renderSync(); toast('已备份当前内容 ✓'); });
   $$('[data-bak-restore]',$('#p-sync')).forEach(el=>el.onclick=()=>{
     const k=el.dataset.bakRestore;
