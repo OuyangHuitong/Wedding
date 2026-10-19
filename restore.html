@@ -136,7 +136,14 @@ function localSync(){
 }
 function writeData(obj){
   obj.sync=localSync(); obj._ts=Date.now();
-  localStorage.setItem(KEY,JSON.stringify(obj));
+  const j=JSON.stringify(obj);
+  localStorage.setItem(KEY,j);
+  // 同步写一份到 IndexedDB 备份区，双保险
+  try{
+    const rq=indexedDB.open('wedding_backup',1);
+    rq.onupgradeneeded=e=>{ const db=e.target.result; if(!db.objectStoreNames.contains('kv')) db.createObjectStore('kv'); };
+    rq.onsuccess=e=>{ e.target.result.transaction('kv','readwrite').objectStore('kv').put(j,'main'); };
+  }catch(e){}
 }
 (async function(){
   let local=null;
