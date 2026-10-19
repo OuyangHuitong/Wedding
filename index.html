@@ -616,6 +616,58 @@ if(Array.isArray(S.progress)){
 }
 // 拍照/视频/游戏清单：迁移到启动时执行（见 seedCollections）
 
+/* ---- IndexedDB 双保险：localStorage 写不下/损坏时自动从这里找回 ---- */
+function idbOpen(){
+  return new Promise(res=>{
+    try{
+      const rq=indexedDB.open('wedding_backup',1);
+      rq.onupgradeseeded=null;
+      rq.onupgradeneeded=e=>{ const db=e.target.result; if(!db.objectStoreNames.contains('kv')) db.createObjectStore('kv'); };
+      rq.onsuccess=e=>res(e.target.result);
+      rq.onerror=()=>res(null);
+    }catch(e){ res(null); }
+  });
+}
+function idbPut(json){
+  idbOpen().then(db=>{
+    if(!db) return;
+    try{ db.transaction('kv','readwrite').objectStore('kv').put(json,'main'); }catch(e){}
+  });
+}
+function idbGet(){
+  return new Promise(res=>{
+    idbOpen().then(db=>{
+      if(!db) return res(null);
+      try{
+        const g=db.transaction('kv').objectStore('kv').get('main');
+        g.onsuccess=()=>res(g.result||null); g.onerror=()=>res(null);
+      }catch(e){ res(null); }
+    });
+  });
+}
+// 启动自检：本机存档为空/损坏时，自动从 IndexedDB 备份区找回
+(async()=>{
+  const raw=localStorage.getItem(KEY);
+  let bad=!raw||raw==='null';
+  if(!bad){ try{ const t=JSON.parse(raw); bad=!(t&&t.settings); }catch(e){ bad=true; } }
+  if(!bad) return;
+  const j=await idbGet();
+  if(j){
+    try{
+      const d=JSON.parse(j);
+      if(d&&d.settings){
+        const keep=S.sync;
+        S=Object.assign({},DEFAULT(),d);
+        S.sync=keep||d.sync||{mode:'',code:'',repo:'',token:'',ts:0};
+        try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
+        render(cur);
+        toast('已自动从手机备份区找回数据 ✓');
+      }
+    }catch(e){}
+  }
+})();
+
+
 // 空间不足时自动压缩所有图片（保留画质可接受的最低体积）
 async function recompressAll(){
   if(window.__recompressing) return false;
@@ -656,18 +708,20 @@ function save(skipPush){
     S._ts=Date.now();
     let json='';
     try{ json=JSON.stringify(S); }catch(e){}
-    try{ localStorage.setItem(KEY,json); }
-    catch(e){
-      try{ localStorage.removeItem(KEY); localStorage.setItem(KEY,json); }
-      catch(e2){
-        toast('存储空间不足，正在自动整理…');
-        await cleanDupImages(false);            // 先去重，去重后往往就放得下了
-        try{ localStorage.setItem(KEY,JSON.stringify(S)); toast('已清理重复图片，保存成功'); return; }catch(e4){}
-        const ok=await recompressAll();
-        try{ localStorage.setItem(KEY,JSON.stringify(S)); toast(ok?'图片已压缩，保存成功':'仍存不下：请删除部分大图'); }
-        catch(e3){ toast('存储空间已满：请删除部分图片后再操作'); }
-      }
+    try{
+      localStorage.setItem(KEY,json);
+      idbPut(json);                      // 同时写一份到 IndexedDB 备份区（配额大，更稳）
+      if(!skipPush) scheduleAutoPush();
+      return;
     }
+    catch(e){}
+    idbPut(json);                         // localStorage 写不进时，先把数据存进备份区保底，绝不清空本地
+    toast('空间不足，正在整理…');
+    await cleanDupImages(false);           // 先去重，去重后往往就放得下了
+    try{ localStorage.setItem(KEY,JSON.stringify(S)); idbPut(JSON.stringify(S)); toast('已清理重复图片，保存成功'); return; }catch(e4){}
+    const ok=await recompressAll();
+    try{ localStorage.setItem(KEY,JSON.stringify(S)); idbPut(JSON.stringify(S)); toast(ok?'图片已压缩，保存成功':'保存成功'); }
+    catch(e3){ toast('存储空间已满：请删除部分图片（数据已存入手机备份区，不会丢）'); }
     if(!skipPush) scheduleAutoPush();
   },120);
 }
@@ -1501,7 +1555,7 @@ async function dedupeImgArr(arr){         // 同一张只留体积最大的（�
     if(!keep[i]||!hs[i]) continue;
     for(let j=i+1;j<arr.length;j++){
       if(!keep[j]||!hs[j]) continue;
-      if(hamming(hs[i],hs[j])<=4){
+      if(hamming(hs[i],hs[j])<=2){          // 阈值收紧：只认几乎完全相同的，避免误伤相似照片
         if(arr[j].length>arr[i].length){ keep[i]=false; removed++; break; }
         keep[j]=false; removed++;
       }
@@ -1542,7 +1596,7 @@ async function applyDeleted(){
     if(!o.imgs||!o.imgs.length) continue;
     const hs=await hashList(o.imgs); const keep=[];
     for(let i=0;i<o.imgs.length;i++){
-      const bad=hs[i]&&del.some(d=>hamming(d,hs[i])<=4);
+      const bad=hs[i]&&del.some(d=>hamming(d,hs[i])<=2);
       if(bad) n++; else keep.push(o.imgs[i]);
     }
     o.imgs=keep;
@@ -1624,16 +1678,25 @@ function syncApply(remote){
   suppressPush=true;
   let json='';
   try{ json=JSON.stringify(S); }catch(e){}
+  idbPut(json);                         // 无论如何先写一份到 IndexedDB 备份区
   try{ localStorage.setItem(KEY,json); }
   catch(e){
-    // 空间不足：先压缩所有图片再试一次，确保最新数据真正落到本机
-    recompressAll().then(()=>{
+    // 空间不足：先去重再压缩，全程不动本地已有数据（不清空）
+    (async()=>{
+      await cleanDupImages(false);
       let j2='';
       try{ j2=JSON.stringify(S); }catch(err){}
-      try{ localStorage.setItem(KEY,j2); toast('已合并，并自动压缩图片以腾出空间'); }
-      catch(err){ toast('手机存储空间不足，请删除部分图片'); }
+      try{ localStorage.setItem(KEY,j2); toast('已合并，已清理重复图片'); }
+      catch(err){
+        await recompressAll();
+        let j3='';
+        try{ j3=JSON.stringify(S); }catch(e5){}
+        try{ localStorage.setItem(KEY,j3); toast('已合并，图片已压缩以腾出空间'); }
+        catch(e4){ toast('已合并；本机空间不足，数据暂存于备份区'); }
+      }
+      idbPut(JSON.stringify(S));
       if(cur==='sync') renderSync();
-    });
+    })();
   }
   suppressPush=false;
   // 合并后自动清理：删过的图不加回来 + 同一张照片的不同压缩版本只留一张
