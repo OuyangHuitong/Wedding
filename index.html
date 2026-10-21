@@ -616,6 +616,14 @@ if(Array.isArray(S.progress)){
 }
 // 拍照/视频/游戏清单：迁移到启动时执行（见 seedCollections）
 
+/* ---- 申请「持久存储」：手机不会自动清掉我们的数据，配额按整机可用空间给 ---- */
+try{
+  if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+}catch(e){}
+/* ---- 离线缓存：整个 App 存进手机，断网也能打开，内容走本机读写 ---- */
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+  window.addEventListener('load',()=>{ try{ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }catch(e){} });
+}
 /* ---- IndexedDB 双保险：localStorage 写不下/损坏时自动从这里找回 ---- */
 function idbOpen(){
   return new Promise(res=>{
@@ -633,10 +641,15 @@ function idbOpen(){
   });
 }
 function idbPut(json){
-  idbOpen().then(db=>{
-    if(!db) return;
-    try{ db.transaction('kv','readwrite').objectStore('kv').put(json,'main'); }catch(e){}
-  });
+  return idbOpen().then(db=>{
+    if(!db) return false;
+    return new Promise(res=>{
+      try{
+        const rq=db.transaction('kv','readwrite').objectStore('kv').put(json,'main');
+        rq.onsuccess=()=>res(true); rq.onerror=()=>res(false);
+      }catch(e){ res(false); }
+    });
+  }).catch(()=>false);
 }
 function idbGet(){
   return new Promise(res=>{
@@ -690,16 +703,21 @@ function slimClone(){                       // 把图片替换成短标记，返
   });
   return {d:d,map:map};
 }
-async function writeLocal(){                // 统一入口：图片进 IndexedDB，文字进 localStorage
+async function writeLocal(){                // 统一入口：IndexedDB 是主存储，localStorage 只是让下次打开更快
   const {d,map}=slimClone();
   const keys=Object.keys(map);
+  // 1) 先把图片本体写进 IndexedDB（手机可用空间级别，几百上千张没问题）
   for(const k of keys){ await idbImgPut(k,map[k]); }
   const j=JSON.stringify(d);
+  // 2) 再把整份资料写进 IndexedDB —— 这才是真正的存档，手机空间够就一定能放下
+  const safe=await idbPut(j);
+  // 3) 最后写一份精简版到 localStorage，只为下一次打开时秒出内容（写不下完全没关系）
   let ok=true;
   try{ localStorage.setItem(KEY,j); }
-  catch(e){ try{ localStorage.removeItem(KEY); localStorage.setItem(KEY,j); }catch(e2){ ok=false; } }
-  idbPut(j);
-  return ok;                              // false = 本机存档确实放不下
+  catch(e){
+    try{ localStorage.removeItem(KEY); localStorage.setItem(KEY,j); }catch(e2){ ok=false; }
+  }
+  return ok||safe;                        // 只要有一处落盘成功就算保存好了
 }
 function collectToks(){
   const out=[];
@@ -835,30 +853,17 @@ function save(skipPush){
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async ()=>{
     S._ts=Date.now();
-    let json='';
-    try{ json=JSON.stringify(S); }catch(e){}
+    let json=''; try{ json=JSON.stringify(S); }catch(e){}
     let placed=false;
-    try{
-      if(!(await writeLocal())) throw new Error('quota');   // 图片自动存入 IndexedDB，不再占用 5MB 的网页存储
-      placed=true;
-      if(!skipPush) scheduleAutoPush();
-      return;
-    }
-    catch(e){ if(placed) return; }
-    // 本机写不下时，立刻改走云端保存，保证内容不外流（不等 8 秒的定时推送）
-    try{ idbPut(json); }catch(e){}
-    if(S.sync&&S.sync.mode&&!window.__cloudSave){
-      window.__cloudSave=true;
-      try{ await syncPush(false); toast('本机已满，已改存到云端 ✓'); }catch(e2){}
-      setTimeout(()=>{window.__cloudSave=false;},8000);
-    }
-    toast('正在整理空间…');
-    await cleanDupImages(false);
-    try{ await writeLocal(); toast('已清理重复图片，保存成功'); }
-    catch(e4){
-      await recompressAll();
-      try{ await writeLocal(); toast('图片已压缩，保存成功'); }
-      catch(e3){ toast('保存失败：请释放一些手机存储空间后重试'); }
+    try{ if(await writeLocal()) placed=true; }catch(e){}
+    if(!placed){
+      // 写不下时全部在后台静默处理：整理重复 → 压缩 → 改推云端，全程不弹任何提示
+      (async()=>{
+        try{ await cleanDupImages(false); if(await writeLocal()) placed=true; }catch(e){}
+        if(!placed){ try{ await recompressAll(); if(await writeLocal()) placed=true; }catch(e){} }
+        if(!placed){ try{ await idbPut(json); }catch(e){} }
+        if(!placed && S.sync && S.sync.mode){ try{ await syncPush(false); }catch(e){} }
+      })();
     }
     if(!skipPush) scheduleAutoPush();
   },120);
@@ -881,14 +886,14 @@ function pickImage(cb){
     rd.onload=()=>{
       const img=new Image();
       img.onload=()=>{
-        const MAX=900;
+        const MAX=1000;
         let w=img.width,h=img.height;
         if(Math.max(w,h)>MAX){ const k=MAX/Math.max(w,h); w=Math.round(w*k); h=Math.round(h*k); }
         const cv=document.createElement('canvas');
         cv.width=w; cv.height=h;
         cv.getContext('2d').drawImage(img,0,0,w,h);
-        let data=cv.toDataURL('image/jpeg',0.72);
-        if(data.length>500000) data=cv.toDataURL('image/jpeg',0.55);   // 超大再压一档
+        let data=cv.toDataURL('image/jpeg',0.75);
+        if(data.length>600000) data=cv.toDataURL('image/jpeg',0.58);   // 特别大的再压一档
         cb(data);
       };
       img.onerror=()=>toast('图片读取失败');
@@ -959,9 +964,8 @@ function bindMedia(pageEl,ctxPrefix,rerender){
     const ref=ctxRef(el.dataset.mgadd); if(!ref.obj) return;
     ensureMulti(ref.obj);
     pickImage(d=>{
-      ref.obj.imgs.push(d); save(); rerender();
-      if(JSON.stringify(S).length>4700000) toast('提示：存储接近上限，图片较多时注意删减');
-    });
+  ref.obj.imgs.push(d); save(); rerender();
+});
   });
   $$('[data-mgdel]',pageEl).forEach(el=>el.onclick=e=>{
     e.stopPropagation();
@@ -1834,15 +1838,11 @@ function syncApply(remote){
   S.sync=keep;
   suppressPush=true;
   (async()=>{
-    try{ await writeLocal(); }
+    try{ if(!(await writeLocal())) throw new Error('q'); }
     catch(e){
-      await cleanDupImages(false);
-      try{ await writeLocal(); toast('已合并，已清理重复图片'); }
-      catch(err){
-        await recompressAll();
-        try{ await writeLocal(); toast('已合并，图片已压缩以适配手机存储'); }
-        catch(e4){ toast('已合并；本机空间不足，请先释放手机存储'); }
-      }
+      try{ await cleanDupImages(false); await writeLocal(); }catch(e2){}
+      try{ await recompressAll(); await writeLocal(); }catch(e3){}
+      try{ await idbPut(JSON.stringify(S)); }catch(e4){}
     }
     if(cur==='sync') renderSync();
   })();
@@ -2013,7 +2013,7 @@ function renderSync(){
         </div>
         <div class="muted" style="margin-top:10px;font-size:11.5px">
           云端最后更新：${S.sync.ts?new Date(S.sync.ts).toLocaleString():'—'}<br>
-          本机：${(()=>{ let n=0; imgTargets().forEach(o=>n+=(o.imgs||[]).length); return n; })()} 张图（存于手机存储空间，不占网页配额）· 资料 ${Math.round((localStorage.getItem(KEY)||'').length/1024)}KB
+          <span data-stor>本机：${(()=>{ let n=0; imgTargets().forEach(o=>n+=(o.imgs||[]).length); return n; })()} 张图 · 资料 ${Math.round((localStorage.getItem(KEY)||'').length/1024)}KB</span>
         </div>
       </div>
       <div class="card">
@@ -2176,6 +2176,25 @@ function renderSync(){
       }catch(e){ toast('数据码无效'); }
     });
   });
+  showStorage();
+}
+/* 本机真实可用空间：直接读手机给这个 App 的配额，让你心里有数 */
+async function showStorage(){
+  const el=$$('[data-stor]')[0]; if(!el) return;
+  let n=0; imgTargets().forEach(o=>n+=(o.imgs||[]).length);
+  let kb=Math.round((localStorage.getItem(KEY)||'').length/1024);
+  let info='';
+  try{
+    if(navigator.storage&&navigator.storage.estimate){
+      const e=await navigator.storage.estimate();
+      const mb=x=>Math.round(x/1048576);
+      let persisted='';
+      try{ if(navigator.storage.persisted){ persisted=(await navigator.storage.persisted())?' · 已锁定不会被手机清理':' · 未锁定，建议保持浏览器里本站的权限'; } }catch(err){}
+      info='<br>手机可用配额约 <b>'+(e.quota?(e.quota>=1073741824?Math.round(e.quota/1073741824*10)/10+' GB':mb(e.quota)+' MB'):'未知')+
+           '</b>，当前已用 <b>'+mb(e.usage||0)+' MB</b>'+persisted;
+    }
+  }catch(e){}
+  el.innerHTML='本机：'+n+' 张图 · 资料 '+kb+'KB'+info;
 }
 
 /* =============== 弹层 =============== */
