@@ -727,26 +727,73 @@ const startHydrate=()=>setTimeout(hydrateImgs,250);
 if(document.readyState==='complete') startHydrate();
 else window.addEventListener('load',startHydrate);
 
-// 启动自检：本机存档为空/损坏时，自动从 IndexedDB 备份区找回
-(async()=>{
-  const raw=localStorage.getItem(KEY);
-  let bad=!raw||raw==='null';
-  if(!bad){ try{ const t=JSON.parse(raw); bad=!(t&&t.settings); }catch(e){ bad=true; } }
-  if(!bad) return;
-  const j=await idbGet();
-  if(j){
+/* 启动自检（加强版）：不只是存档损坏时才救，而是只要手机别处还留着内容更全的一版，就自动补回来 */
+function dataWeight(d){
+  if(!d||typeof d!=='object') return 0;
+  let w=0;
+  ['ideas','progress','shopping','costs','paizhao','video','game'].forEach(k=>{
+    const a=d[k]; if(!Array.isArray(a)) return;
+    w+=a.length*10;
+    a.forEach(x=>{ w+=String(x.t||x.title||x.c||x.content||'').length; w+=(x.imgs||[]).length*4; w+=(x.links||[]).length*2; });
+  });
+  Object.keys(d.todos||{}).forEach(k=>{ w+=(d.todos[k]||[]).length*3; });
+  if(d.makeup&&typeof d.makeup==='object') Object.keys(d.makeup).forEach(k=>{
+    const m=d.makeup[k]||{}; w+=(m.imgs||[]).length*4;
+    Object.keys(m.fields||{}).forEach(f=>{ const v=m.fields[f]||{}; w+=(v.text||'').length; w+=(v.imgs||[]).length*4; });
+  });
+  return w;
+}
+async function collectRecoverCands(){
+  const out=[];
+  try{ const j=await idbGet(); if(j){ const d=JSON.parse(j); if(d&&typeof d==='object') out.push({from:'手机备份区',d}); } }catch(e){}
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i); if(!k||k===KEY) continue;
+    if(k.indexOf('wedding')!==0 && k.indexOf('备婚')!==0) continue;
     try{
-      const d=JSON.parse(j);
-      if(d&&d.settings){
-        const keep=S.sync;
-        S=Object.assign({},DEFAULT(),d);
-        S.sync=keep||d.sync||{mode:'',code:'',repo:'',token:'',ts:0};
-        writeLocal();
-        render(cur);
-        toast('已自动从手机备份区找回数据 ✓');
-      }
+      const v=localStorage.getItem(k); if(!v||v.length<20) continue;
+      const o=JSON.parse(v); if(!o||typeof o!=='object'||Array.isArray(o)) continue;
+      const d=o.settings?o:(o.d&&typeof o.d==='object'?o.d:(o.data&&typeof o.data==='object'?o.data:null));
+      if(d&&typeof d==='object') out.push({from:'本机存档',d});
     }catch(e){}
   }
+  return out;
+}
+(async()=>{
+  if(window.__recovered) return; window.__recovered=true;
+  try{
+    const mine=dataWeight(S);
+    const all=await collectRecoverCands();
+    const cands=all.filter(c=>dataWeight(c.d)>mine*1.02+30);
+    if(!cands.length) return;
+    cands.sort((a,b)=>dataWeight(b.d)-dataWeight(a.d));
+    const cnt=d=>{
+      let n=0; ['ideas','progress','shopping','costs','paizhao','video','game'].forEach(k=>n+=(d[k]||[]).length);
+      Object.keys(d.todos||{}).forEach(k=>n+=(d.todos[k]||[]).length);
+      if(d.makeup) Object.keys(d.makeup).forEach(k=>Object.keys((d.makeup[k]||{}).fields||{}).forEach(f=>{ if((d.makeup[k].fields[f].text||'').trim()) n++; }));
+      return n;
+    };
+    const before=cnt(S);
+    const keep=S.sync;
+    cands.forEach(c=>{ S=mergeData(syncPayload(),c.d); });
+    S.sync=keep||S.sync||{mode:'',code:'',repo:'',token:'',ts:0};
+    S._ts=Date.now();
+    // 图片可能仍是 idb: 标记，重新排一次还原队列
+    pendingTok=collectToks();
+    pendingTok.forEach(r=>{ r.o.imgs[r.i]=PLACEHOLDER; });
+    hydrateImgs();
+    await applyDeleted().catch(()=>{});
+    await cleanDupImages(false).catch(()=>{});
+    let placed=false;
+    try{ if(!(await writeLocal())) throw new Error('quota'); placed=true; }catch(e){
+      await recompressAll().catch(()=>{});
+      try{ if(await writeLocal()) placed=true; }catch(e2){}
+    }
+    if(!placed){ try{ idbPut(JSON.stringify(S)); }catch(e){} try{ syncPush(false); }catch(e){} }
+    else scheduleAutoPush();
+    render(cur);
+    const got=cnt(S)-before;
+    toast('自动找回了 '+got+' 条曾丢失的内容（'+cands[0].from+'）✓');
+  }catch(e){}
 })();
 
 
@@ -1739,7 +1786,25 @@ function mergeData(local,remote){
     }
   });
   d.todos=mt;
-  ['costs'].forEach(()=>{});
+  // ★ 妆容同步（之前漏掉导致妆容内容一边有新的一边显示不出来：图片取并集，文字保留写得更多的一版）
+  if(remote.makeup||local.makeup){
+    const dm=JSON.parse(JSON.stringify(local.makeup||{}));
+    const uni=(x,y)=>{ const s=new Set(Array.isArray(x)?x:[]); (Array.isArray(y)?y:[]).forEach(v=>s.add(v)); return Array.from(s); };
+    Object.keys(remote.makeup||{}).forEach(k=>{
+      const b=remote.makeup[k]||{}; const a=dm[k]=dm[k]||{imgs:[],fields:{}};
+      if(!Array.isArray(a.imgs)) a.imgs=[]; if(!a.fields) a.fields={};
+      a.imgs=uni(a.imgs,b.imgs);
+      if(b.fields&&typeof b.fields==='object'){
+        Object.keys(b.fields).forEach(f=>{
+          const bf=b.fields[f]||{}; const af=a.fields[f]=a.fields[f]||{text:'',imgs:[],links:[]};
+          if((bf.text||'').length>(af.text||'').length) af.text=bf.text;
+          af.imgs=uni(af.imgs,bf.imgs);
+          af.links=uni(af.links,bf.links);
+        });
+      }
+    });
+    d.makeup=dm;
+  }
   return d;
 }
 const BAK='wedding_dash_bak_';
