@@ -695,10 +695,11 @@ async function writeLocal(){                // 统一入口：图片进 IndexedD
   const keys=Object.keys(map);
   for(const k of keys){ await idbImgPut(k,map[k]); }
   const j=JSON.stringify(d);
+  let ok=true;
   try{ localStorage.setItem(KEY,j); }
-  catch(e){ try{ localStorage.removeItem(KEY); localStorage.setItem(KEY,j); }catch(e2){} }
+  catch(e){ try{ localStorage.removeItem(KEY); localStorage.setItem(KEY,j); }catch(e2){ ok=false; } }
   idbPut(j);
-  return true;
+  return ok;                              // false = 本机存档确实放不下
 }
 function collectToks(){
   const out=[];
@@ -789,13 +790,21 @@ function save(skipPush){
     S._ts=Date.now();
     let json='';
     try{ json=JSON.stringify(S); }catch(e){}
+    let placed=false;
     try{
-      await writeLocal();               // 图片自动存入 IndexedDB，不再占用 5MB 的网页存储
+      if(!(await writeLocal())) throw new Error('quota');   // 图片自动存入 IndexedDB，不再占用 5MB 的网页存储
+      placed=true;
       if(!skipPush) scheduleAutoPush();
       return;
     }
-    catch(e){}
+    catch(e){ if(placed) return; }
+    // 本机写不下时，立刻改走云端保存，保证内容不外流（不等 8 秒的定时推送）
     try{ idbPut(json); }catch(e){}
+    if(S.sync&&S.sync.mode&&!window.__cloudSave){
+      window.__cloudSave=true;
+      try{ await syncPush(false); toast('本机已满，已改存到云端 ✓'); }catch(e2){}
+      setTimeout(()=>{window.__cloudSave=false;},8000);
+    }
     toast('正在整理空间…');
     await cleanDupImages(false);
     try{ await writeLocal(); toast('已清理重复图片，保存成功'); }
