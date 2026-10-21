@@ -512,6 +512,7 @@ select.field{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg 
 const $ = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
 const KEY = 'wedding_dash_v1';
+const BUILD = 'v2 · 10/21 存储升级版';   // 版本号：在「同步」页能看到，用来确认手机加载的是不是最新版
 const uid = ()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const todayKey = (d=new Date())=>{
   const t = new Date(d.getTime()-d.getTimezoneOffset()*60000);
@@ -2012,6 +2013,10 @@ function renderSync(){
           <button class="btn ghost sm" data-sync-clean>清理重复图片</button>
         </div>
         <div class="muted" style="margin-top:10px;font-size:11.5px">
+          当前版本：<b style="color:#C07D8A">${BUILD}</b>　<span id="swState"></span>
+          <a href="#" id="hardReload" style="color:#C07D8A;text-decoration:underline;float:right">打不开新功能？点这里强制更新</a>
+        </div>
+        <div class="muted" style="margin-top:10px;font-size:11.5px">
           云端最后更新：${S.sync.ts?new Date(S.sync.ts).toLocaleString():'—'}<br>
           <span data-stor>本机：${(()=>{ let n=0; imgTargets().forEach(o=>n+=(o.imgs||[]).length); return n; })()} 张图 · 资料 ${Math.round((localStorage.getItem(KEY)||'').length/1024)}KB</span>
         </div>
@@ -2176,6 +2181,25 @@ function renderSync(){
       }catch(e){ toast('数据码无效'); }
     });
   });
+  // 版本号 + 离线状态 + 强制更新
+  try{
+    const sw=$('#swState');
+    if(sw){
+      if('serviceWorker' in navigator){
+        navigator.serviceWorker.getRegistration().then(r=>{
+          sw.textContent = r&&r.active ? '· 离线可用已开启' : '· 离线缓存正在开启…';
+        }).catch(()=>{});
+      }else sw.textContent='· 此浏览器不支持离线';
+    }
+    const hr=$('#hardReload');
+    if(hr) hr.onclick=async e=>{
+      e.preventDefault();
+      hr.textContent='正在更新…';
+      try{ if('serviceWorker' in navigator){ const r=await navigator.serviceWorker.getRegistration(); if(r) await r.unregister(); } }catch(err){}
+      try{ if(window.caches){ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); } }catch(err){}
+      location.replace(location.pathname+'?v='+Date.now());
+    };
+  }catch(e){}
   showStorage();
 }
 /* 本机真实可用空间：直接读手机给这个 App 的配额，让你心里有数 */
