@@ -620,9 +620,13 @@ if(Array.isArray(S.progress)){
 function idbOpen(){
   return new Promise(res=>{
     try{
-      const rq=indexedDB.open('wedding_backup',1);
+      const rq=indexedDB.open('wedding_backup',2);
       rq.onupgradeseeded=null;
-      rq.onupgradeneeded=e=>{ const db=e.target.result; if(!db.objectStoreNames.contains('kv')) db.createObjectStore('kv'); };
+      rq.onupgradeneeded=e=>{
+        const db=e.target.result;
+        if(!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+        if(!db.objectStoreNames.contains('imgs')) db.createObjectStore('imgs');
+      };
       rq.onsuccess=e=>res(e.target.result);
       rq.onerror=()=>res(null);
     }catch(e){ res(null); }
@@ -645,6 +649,83 @@ function idbGet(){
     });
   });
 }
+/* ---- 图片外置扩容：图片本体存进 IndexedDB（手机可用空间级别），localStorage 只留文字 ---- */
+const IMGSTORE='imgs';
+const PLACEHOLDER='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+function tokHash(s){ let h=5381; for(let i=0;i<s.length;i++){ h=((h*33)^s.charCodeAt(i))>>>0; } return 'h'+h.toString(36)+'_'+s.length; }
+function idbImgPut(k,v){
+  return idbOpen().then(db=>new Promise(res=>{
+    if(!db) return res(false);
+    try{ const rq=db.transaction(IMGSTORE,'readwrite').objectStore(IMGSTORE).put(v,k);
+      rq.onsuccess=()=>res(true); rq.onerror=()=>res(false);
+    }catch(e){ res(false); }
+  }));
+}
+function idbImgGet(k){
+  return idbOpen().then(db=>new Promise(res=>{
+    if(!db) return res(null);
+    try{ const rq=db.transaction(IMGSTORE).objectStore(IMGSTORE).get(k);
+      rq.onsuccess=()=>res(rq.result||null); rq.onerror=()=>res(null);
+    }catch(e){ res(null); }
+  }));
+}
+function imgContainers(d){
+  const list=[];
+  ['ideas','progress','shopping','paizhao','video','game'].forEach(k=>(d[k]||[]).forEach(o=>{ if(o&&Array.isArray(o.imgs)) list.push(o); }));
+  if(d.makeup) Object.keys(d.makeup).forEach(k=>{
+    const m=d.makeup[k]; if(!m) return;
+    if(Array.isArray(m.imgs)) list.push(m);
+    if(m.fields) Object.keys(m.fields).forEach(f=>{ const v=m.fields[f]; if(v&&Array.isArray(v.imgs)) list.push(v); });
+  });
+  return list;
+}
+function slimClone(){                       // 把图片替换成短标记，返回瘦身后的数据和图片字典
+  const map={};
+  const d=JSON.parse(JSON.stringify(S));
+  imgContainers(d).forEach(o=>{
+    o.imgs=o.imgs.map(s=>{
+      if(typeof s!=='string'||s.indexOf('data:image')!==0) return s;
+      const tk=tokHash(s); map[tk]=s; return 'idb:'+tk;
+    });
+  });
+  return {d:d,map:map};
+}
+async function writeLocal(){                // 统一入口：图片进 IndexedDB，文字进 localStorage
+  const {d,map}=slimClone();
+  const keys=Object.keys(map);
+  for(const k of keys){ await idbImgPut(k,map[k]); }
+  const j=JSON.stringify(d);
+  try{ localStorage.setItem(KEY,j); }
+  catch(e){ try{ localStorage.removeItem(KEY); localStorage.setItem(KEY,j); }catch(e2){} }
+  idbPut(j);
+  return true;
+}
+function collectToks(){
+  const out=[];
+  for(const o of imgContainers(S)) o.imgs.forEach((v,i)=>{
+    if(typeof v==='string'&&v.indexOf('idb:')===0) out.push({o:o,i:i,tk:v.slice(4)});
+  });
+  return out;
+}
+let pendingTok=[];
+async function hydrateImgs(){               // 把外置标记换回真图片，失败的自动重试
+  const list=pendingTok.length?pendingTok:collectToks();
+  const still=[];
+  for(const r of list){
+    const real=await idbImgGet(r.tk);
+    if(real) r.o.imgs[r.i]=real; else still.push(r);
+  }
+  pendingTok=still;
+  if(still.length){ setTimeout(()=>hydrateImgs(),1200); return; }
+  try{ render(cur); }catch(e){}
+}
+// 先把标记换成透明占位（避免裂图），等页面就绪后再从 IndexedDB 取回真图
+pendingTok=collectToks();
+pendingTok.forEach(r=>{ r.o.imgs[r.i]=PLACEHOLDER; });
+const startHydrate=()=>setTimeout(hydrateImgs,250);
+if(document.readyState==='complete') startHydrate();
+else window.addEventListener('load',startHydrate);
+
 // 启动自检：本机存档为空/损坏时，自动从 IndexedDB 备份区找回
 (async()=>{
   const raw=localStorage.getItem(KEY);
@@ -659,7 +740,7 @@ function idbGet(){
         const keep=S.sync;
         S=Object.assign({},DEFAULT(),d);
         S.sync=keep||d.sync||{mode:'',code:'',repo:'',token:'',ts:0};
-        try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
+        writeLocal();
         render(cur);
         toast('已自动从手机备份区找回数据 ✓');
       }
@@ -709,19 +790,20 @@ function save(skipPush){
     let json='';
     try{ json=JSON.stringify(S); }catch(e){}
     try{
-      localStorage.setItem(KEY,json);
-      idbPut(json);                      // 同时写一份到 IndexedDB 备份区（配额大，更稳）
+      await writeLocal();               // 图片自动存入 IndexedDB，不再占用 5MB 的网页存储
       if(!skipPush) scheduleAutoPush();
       return;
     }
     catch(e){}
-    idbPut(json);                         // localStorage 写不进时，先把数据存进备份区保底，绝不清空本地
-    toast('空间不足，正在整理…');
-    await cleanDupImages(false);           // 先去重，去重后往往就放得下了
-    try{ localStorage.setItem(KEY,JSON.stringify(S)); idbPut(JSON.stringify(S)); toast('已清理重复图片，保存成功'); return; }catch(e4){}
-    const ok=await recompressAll();
-    try{ localStorage.setItem(KEY,JSON.stringify(S)); idbPut(JSON.stringify(S)); toast(ok?'图片已压缩，保存成功':'保存成功'); }
-    catch(e3){ toast('存储空间已满：请删除部分图片（数据已存入手机备份区，不会丢）'); }
+    try{ idbPut(json); }catch(e){}
+    toast('正在整理空间…');
+    await cleanDupImages(false);
+    try{ await writeLocal(); toast('已清理重复图片，保存成功'); }
+    catch(e4){
+      await recompressAll();
+      try{ await writeLocal(); toast('图片已压缩，保存成功'); }
+      catch(e3){ toast('保存失败：请释放一些手机存储空间后重试'); }
+    }
     if(!skipPush) scheduleAutoPush();
   },120);
 }
@@ -1654,8 +1736,9 @@ function mergeData(local,remote){
 const BAK='wedding_dash_bak_';
 function backupNow(tag){
   try{
-    const p=JSON.parse(JSON.stringify(S)); delete p.sync;
-    localStorage.setItem(BAK+Date.now()+(tag?'_'+tag:''),JSON.stringify(p));
+    const {d,map}=slimClone();                       // 备份也走外置精简，不占网页存储配额
+    for(const k in map) idbImgPut(k,map[k]);
+    localStorage.setItem(BAK+Date.now()+(tag?'_'+tag:''),JSON.stringify(d));
     const ks=Object.keys(localStorage).filter(k=>k.indexOf(BAK)===0).sort();
     while(ks.length>8){ localStorage.removeItem(ks.shift()); }
   }catch(e){}
@@ -1676,28 +1759,19 @@ function syncApply(remote){
   S=mergeData(syncPayload(),remote);   // 合并而非覆盖：两边的条目、图片都保留
   S.sync=keep;
   suppressPush=true;
-  let json='';
-  try{ json=JSON.stringify(S); }catch(e){}
-  idbPut(json);                         // 无论如何先写一份到 IndexedDB 备份区
-  try{ localStorage.setItem(KEY,json); }
-  catch(e){
-    // 空间不足：先去重再压缩，全程不动本地已有数据（不清空）
-    (async()=>{
+  (async()=>{
+    try{ await writeLocal(); }
+    catch(e){
       await cleanDupImages(false);
-      let j2='';
-      try{ j2=JSON.stringify(S); }catch(err){}
-      try{ localStorage.setItem(KEY,j2); toast('已合并，已清理重复图片'); }
+      try{ await writeLocal(); toast('已合并，已清理重复图片'); }
       catch(err){
         await recompressAll();
-        let j3='';
-        try{ j3=JSON.stringify(S); }catch(e5){}
-        try{ localStorage.setItem(KEY,j3); toast('已合并，图片已压缩以腾出空间'); }
-        catch(e4){ toast('已合并；本机空间不足，数据暂存于备份区'); }
+        try{ await writeLocal(); toast('已合并，图片已压缩以适配手机存储'); }
+        catch(e4){ toast('已合并；本机空间不足，请先释放手机存储'); }
       }
-      idbPut(JSON.stringify(S));
-      if(cur==='sync') renderSync();
-    })();
-  }
+    }
+    if(cur==='sync') renderSync();
+  })();
   suppressPush=false;
   // 合并后自动清理：删过的图不加回来 + 同一张照片的不同压缩版本只留一张
   setTimeout(()=>{ applyDeleted().then(()=>cleanDupImages(false)); },300);
@@ -1864,7 +1938,8 @@ function renderSync(){
           <button class="btn ghost sm" data-sync-clean>清理重复图片</button>
         </div>
         <div class="muted" style="margin-top:10px;font-size:11.5px">
-          云端最后更新：${S.sync.ts?new Date(S.sync.ts).toLocaleString():'—'}
+          云端最后更新：${S.sync.ts?new Date(S.sync.ts).toLocaleString():'—'}<br>
+          本机：${(()=>{ let n=0; imgTargets().forEach(o=>n+=(o.imgs||[]).length); return n; })()} 张图（存于手机存储空间，不占网页配额）· 资料 ${Math.round((localStorage.getItem(KEY)||'').length/1024)}KB
         </div>
       </div>
       <div class="card">
@@ -1925,7 +2000,7 @@ function renderSync(){
     if(n){ renderSync(); setTimeout(()=>syncPush(false),1200); }
   });
   $$('[data-bak-make]',$('#p-sync')).forEach(el=>el.onclick=()=>{ backupNow('manual'); renderSync(); toast('已备份当前内容 ✓'); });
-  $$('[data-bak-restore]',$('#p-sync')).forEach(el=>el.onclick=()=>{
+  $$('[data-bak-restore]',$('#p-sync')).forEach(el=>el.onclick=async()=>{
     const k=el.dataset.bakRestore;
     if(!confirm('用这份备份替换当前内容？当前内容会先自动备份一次。')) return;
     try{
@@ -1933,7 +2008,7 @@ function renderSync(){
       backupNow('beforerestore');
       const keep=S.sync;
       S=Object.assign({},d); S.sync=keep; S._ts=Date.now();
-      try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
+      await hydrateImgs(); writeLocal();
       render(cur); renderSync(); toast('已还原 ✓');
       if(S.sync.mode) setTimeout(()=>syncPush(false),1500);
     }catch(e){ toast('还原失败'); }
