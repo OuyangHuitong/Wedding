@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>照片找回 · 撤销删除</title>
+<style>
+:root{--bg:#FBF7F4;--card:#fff;--ink:#3A3335;--sub:#8C7F82;--accent:#C07D8A;--line:rgba(0,0,0,.07)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;padding:20px 14px 40px;line-height:1.6}
+.wrap{max-width:540px;margin:0 auto}
+h1{font-size:19px;margin:0 0 4px}
+.sub{color:var(--sub);font-size:12.5px;margin-bottom:16px}
+.card{background:var(--card);border-radius:16px;padding:15px;box-shadow:0 2px 14px rgba(150,120,125,.08);margin-bottom:12px}
+.mut{color:var(--sub);font-size:12.5px}
+.ok{color:#4E8C6A}.bad{color:#C25E5E}
+.btn{display:block;width:100%;padding:13px;border:0;border-radius:12px;background:var(--accent);color:#fff;font-size:14.5px;margin:8px 0}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn:disabled{opacity:.5}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}
+.grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px;display:block;background:#F3ECEA}
+.bar{background:#F7EFEC;border-radius:10px;padding:11px 13px;margin-top:12px;font-size:12.5px;line-height:1.9}
+.big{font-size:22px;font-weight:700;color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>照片找回 · 撤销删除</h1>
+  <div class="sub">扫描手机里所有曾经保存过的照片 · 把删掉的还回来</div>
+  <div class="card">
+    <div id="msg" class="mut">正在扫描手机照片库…</div>
+    <div id="bar"></div>
+    <div id="grid" class="grid"></div>
+    <div id="acts"></div>
+  </div>
+  <div class="card">
+    <div class="mut">只会把「库里有、现在页面上没有」的照片加回来，<b>不会动你现在已有的任何内容</b>。</div>
+  </div>
+</div>
+<script>
+const KEY='wedding_dash_v1', REPO='OuyangHuitong/Wedding', FILE='wedding-data.json';
+const $=s=>document.querySelector(s);
+const CATS=['ideas','progress','shopping','costs','paizhao','video','game'];
+const CN={ideas:'灵感',progress:'进度',shopping:'待购',costs:'开销',paizhao:'拍照',video:'视频',game:'游戏'};
+
+function openDB(name,ver){ return new Promise(res=>{ try{
+  const rq=indexedDB.open(name,ver);
+  rq.onupgradeneeded=e=>{ const db=e.target.result;
+    if(!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+    if(!db.objectStoreNames.contains('imgs')) db.createObjectStore('imgs'); };
+  rq.onsuccess=e=>res(e.target.result); rq.onerror=()=>res(null); }catch(e){ res(null); } }); }
+function getAll(db,store){ return new Promise(res=>{ if(!db||!db.objectStoreNames.contains(store)) return res([]);
+  try{ const out=[]; const cur=db.transaction(store).objectStore(store).openCursor();
+    cur.onsuccess=e=>{ const c=e.target.result; if(c){out.push([c.key,c.value]); c.continue();} else res(out); };
+    cur.onerror=()=>res(out); }catch(e){ res([]); } }); }
+function ahashOf(src){ return new Promise(res=>{
+  if(typeof src!=='string'||src.indexOf('data:image')!==0) return res(null);
+  const im=new Image();
+  im.onload=()=>{ try{ const c=document.createElement('canvas'); c.width=8; c.height=8;
+      const g=c.getContext('2d'); g.drawImage(im,0,0,8,8);
+      const d=g.getImageData(0,0,8,8).data; const px=[];
+      for(let i=0;i<d.length;i+=4) px.push(d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114);
+      const avg=px.reduce((a,b)=>a+b,0)/px.length;
+      res(px.map(x=>x>avg?'1':'0').join('')); }catch(e){ res(null); } };
+  im.onerror=()=>res(null); im.src=src; }); }
+function ham(a,b){ if(!a||!b||a.length!==b.length) return 99; let n=0; for(let i=0;i<a.length;i++) if(a[i]!==b[i]) n++; return n; }
+function containers(d){ const out=[];
+  CATS.forEach(k=>{ (d[k]||[]).forEach(o=>{ if(o&&Array.isArray(o.imgs)) out.push({cat:k,key:k,o}); }); });
+  if(d&&d.makeup&&typeof d.makeup==='object') Object.keys(d.makeup).forEach(k=>{ const m=d.makeup[k]; if(!m) return;
+    if(Array.isArray(m.imgs)) out.push({cat:'makeup',key:'makeup',sub:k,o:m});
+    Object.keys(m.fields||{}).forEach(f=>{ const v=m.fields[f]; if(v&&Array.isArray(v.imgs)) out.push({cat:'makeup',key:'makeup',sub:k,field:f,o:v}); }); });
+  return out; }
+function itemKey(x){ if(!x) return '';
+  for(const f of ['title','t','name','id','date']){ if(x[f]!==undefined&&x[f]!==null&&x[f]!=='') return String(x[f]); }
+  return JSON.stringify(x).slice(0,40); }
+function fmt(ts){ if(!ts) return '时间未知'; const d=new Date(ts),p=x=>String(x).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes()); }
+
+const hashCache=new Map();
+async function H(src){ if(!src||typeof src!=='string'||src.indexOf('data:image')!==0) return null;
+  if(hashCache.has(src)) return hashCache.get(src);
+  const h=await ahashOf(src); hashCache.set(src,h); return h; }
+
+(async()=>{
+  const db=await openDB('wedding_backup',2);
+  const imgRows=await getAll(db,'imgs');
+  const imgCache={}; imgRows.forEach(([k,v])=>imgCache[k]=v);
+  const real=v=>{ if(typeof v==='string'&&v.indexOf('idb:')===0){ const r=imgCache[v.slice(4)]; if(r) return r; } return v; };
+
+  // 当前数据
+  let cur=null; try{ cur=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){}
+  if(!cur){ try{ const kv=await getAll(db,'kv'); const m=kv.find(([k])=>k==='main')||kv[0]; if(m) cur=JSON.parse(m[1]); }catch(e){} }
+  if(!cur){ $('#msg').innerHTML='<span class="bad">没找到当前数据。请先打开一次备婚工作台，再回到本页。</span>'; return; }
+
+  // ③ 本机各版备份（每次同步前会自动留一份）
+  const cands=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i); if(!k||k===KEY) continue;
+    if(k.indexOf('wedding')!==0 && k.indexOf('备婚')!==0) continue;
+    let d=null; try{ d=JSON.parse(localStorage.getItem(k)); }catch(e){ continue; }
+    if(d&&typeof d==='object'&&!Array.isArray(d)) cands.push({from:'本机存档',ts:Number((k.match(/1\d{9,12}/)||[0])[0])||d._ts||0,d});
+  }
+
+  // ① 当前已有的照片指纹 + 每张照片原本挂在哪条内容下
+  const curH=[];
+  const owner=new Map();
+  const scanAll=[cur].concat(cands.map(c=>c.d));
+  for(const d of scanAll){
+    for(const c of containers(d)){
+      for(const v of c.o.imgs){
+        if(typeof v==='string'&&v.indexOf('idb:')===0 && !owner.has(v))
+          owner.set(v,{cat:c.cat,key:itemKey(c.o),title:String(c.o.t||c.o.title||c.o.name||'')});
+        const h=await H(real(v)); if(h) curH.push(h);
+      }
+    }
+  }
+
+  // ② 手机照片库（IndexedDB imgs）——所有曾经保存过的照片本体，删了也还在
+  const seen=new Set(), lost=[];
+  for(const [k,v] of imgRows){
+    if(typeof v!=='string'||v.indexOf('data:image')!==0) continue;
+    const h=await H(v); if(!h||seen.has(h)) continue;
+    let mn=99; for(const x of curH){ const d=ham(h,x); if(d<mn) mn=d; }
+    if(mn<=3) continue;                       // 现在页面上还有 → 不算删掉
+    seen.add(h);
+    const ow=owner.get('idb:'+k);
+    lost.push({src:v,h,cat:ow?ow.cat:'paizhao',itemKey:ow?ow.key:null,title:ow?ow.title:''});
+  }
+
+  // ④ 备份里还有、但照片库没覆盖到的，一并补上
+  const lostH=new Set(lost.map(l=>l.h));
+  cands.forEach(c=>{
+    for(const ct of containers(c.d)) for(const v of ct.o.imgs){
+      const src=real(v); if(typeof src!=='string'||src.indexOf('data:image')!==0) continue;
+      const h=hashCache.get(src); if(!h) continue;
+      if(lostH.has(h)){ const o=lost.find(x=>x.h===h); if(o.itemKey===null){ o.cat=ct.cat; o.itemKey=itemKey(ct.o); } continue; }
+      let mn=99; for(const x of curH){ const d=ham(h,x); if(d<mn) mn=d; }
+      if(mn<=3||seen.has(h)) continue;
+      seen.add(h); lost.push({src,h,cat:ct.cat,itemKey:itemKey(ct.o)});
+    }
+  });
+
+  if(!lost.length){
+    $('#msg').innerHTML='<span class="ok">没有找到被删掉的照片。<br>说明手机照片库里的内容和当前页面完全一致，一张没少。</span>';
+    return;
+  }
+  $('#msg').innerHTML='找到 <b>'+lost.length+'</b> 张被删掉的照片。下面是缩略图，确认后点按钮一次性还回。';
+  $('#grid').innerHTML=lost.map(l=>'<img src="'+l.src+'" title="'+(CN[l.cat]||l.cat)+'">').join('');
+  const by={}; lost.forEach(l=>{ const n=CN[l.cat]||l.cat; by[n]=(by[n]||0)+1; });
+  $('#bar').innerHTML='<div class="bar">原本所在位置：'+Object.keys(by).map(k=>k+' '+by[k]+'张').join('、')+'</div>';
+
+  const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+  async function restore(backToOriginal){
+    document.querySelectorAll('#acts .btn').forEach(b=>b.disabled=true);
+    $('#msg').innerHTML='正在还回…';
+    try{
+      const out=JSON.parse(JSON.stringify(cur));
+      CATS.forEach(k=>{ if(!Array.isArray(out[k])) out[k]=[]; });
+      const orphans=[];
+      lost.forEach(l=>{
+        const cat=(backToOriginal&&l.cat)?l.cat:'paizhao';
+        if(!l.itemKey){ orphans.push(l); return; }        // 查不到原位置的，最后统一收进一个条目
+        let arr=out[cat]; if(!Array.isArray(arr)) arr=out[cat]=[];
+        let t=arr.find(x=>itemKey(x)===l.itemKey);
+        if(!t){
+          t={id:uid(), t:l.title||l.itemKey, c:'', imgs:[], links:[]};
+          if(cat==='costs') t.amount=0;
+          arr.push(t);
+        }
+        if(!Array.isArray(t.imgs)) t.imgs=[];
+        t.imgs.push(l.src);
+      });
+      if(orphans.length){
+        let box=out.paizhao.find(x=>x.t==='已找回的照片');
+        if(!box){ box={id:uid(), t:'已找回的照片', c:'', imgs:[], links:[]}; out.paizhao.push(box); }
+        orphans.forEach(l=>box.imgs.push(l.src));
+      }
+      out._del=[];                                     // 清掉删除记忆，否则刚还回来又被剔掉
+      out._ts=Date.now();
+      try{ localStorage.setItem('wedding_dash_bak_'+Date.now()+'_beforeundelete', localStorage.getItem(KEY)||''); }catch(e){}
+      try{ localStorage.setItem(KEY,JSON.stringify(out)); }catch(e){}
+      try{ const d2=await openDB('wedding_backup',2); if(d2) d2.transaction('kv','readwrite').objectStore('kv').put(JSON.stringify(out),'main'); }catch(e){}
+      let up='已写回本机 ✓';
+      try{
+        const s=out.sync||{};
+        if(s.token&&s.mode==='gh'){ await pushCloud(out,s.token); up='全部还回，并已上传云端 ✓'; }
+      }catch(e){ up='已还回本机；上传云端失败：'+e.message; }
+      $('#msg').innerHTML='<span class="ok">'+up+'<br>现在把备婚工作台彻底关掉再打开，照片就在了。</span>';
+      $('#grid').innerHTML=''; $('#acts').innerHTML='';
+    }catch(e){ $('#msg').innerHTML='<span class="bad">出错：'+e.message+'</span>'; document.querySelectorAll('#acts .btn').forEach(b=>b.disabled=false); }
+  }
+  async function pushCloud(d,token){
+    const B='https://api.github.com/repos/'+REPO+'/contents/'+FILE;
+    const h={Authorization:'Bearer '+token,Accept:'application/vnd.github+json'};
+    let sha=null;
+    try{ const r=await fetch(B,{headers:h}); if(r.ok) sha=(await r.json()).sha; }catch(e){}
+    const body={message:'找回误删照片 '+new Date().toLocaleString(),content:btoa(unescape(encodeURIComponent(JSON.stringify(d))))};
+    if(sha) body.sha=sha;
+    const r=await fetch(B,{method:'PUT',headers:h,body:JSON.stringify(body)});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+  }
+  $('#acts').innerHTML=
+    '<button class="btn" id="r1">全部还回「拍照」栏目</button>'+
+    '<button class="btn ghost" id="r2">按原位置还回（推荐）</button>';
+  $('#r1').onclick=()=>restore(false);
+  $('#r2').onclick=()=>restore(true);
+})();
+</script>
+</body>
+</html>
