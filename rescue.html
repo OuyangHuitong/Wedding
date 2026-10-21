@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>数据抢救 · 备婚工作台</title>
+<style>
+:root{--bg:#FBF7F4;--card:#fff;--ink:#3A3335;--sub:#8C7F82;--accent:#C07D8A;--line:rgba(0,0,0,.07)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;padding:20px 14px 40px;line-height:1.6}
+.wrap{max-width:540px;margin:0 auto}
+h1{font-size:19px;margin:0 0 4px}
+.sub{color:var(--sub);font-size:12.5px;margin-bottom:16px}
+.card{background:var(--card);border-radius:16px;padding:15px;box-shadow:0 2px 14px rgba(150,120,125,.08);margin-bottom:12px}
+.mut{color:var(--sub);font-size:12.5px}
+.ok{color:#4E8C6A}.bad{color:#C25E5E}
+.btn{display:block;width:100%;padding:13px;border:0;border-radius:12px;background:var(--accent);color:#fff;font-size:14.5px;margin:8px 0}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn:disabled{opacity:.5}
+.item{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.item.now{border-color:var(--accent);background:rgba(192,125,138,.05)}
+.tt{font-size:14px;font-weight:600}
+.row2{display:flex;gap:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>数据抢救</h1>
+  <div class="sub">扫描手机里所有残留存档 · 只读取，点击按钮前不会改动任何东西</div>
+  <div class="card">
+    <div id="msg" class="mut">正在扫描…</div>
+    <div id="list" style="margin-top:12px"></div>
+  </div>
+  <div class="card">
+    <div class="tt">说明</div>
+    <div class="mut" style="margin-top:6px">
+      · 下面列出手机里能找到的所有数据版本，按时间从新到旧排<br>
+      · 「当前」是你打开工作台看到的那份<br>
+      · 找到含今天内容的那一份，点「恢复并上传」，它会被写回本机并同步到云端<br>
+      · 整个过程不会删除任何其它存档
+    </div>
+  </div>
+</div>
+<script>
+const KEY='wedding_dash_v1', BAK='wedding_dash_bak_', SKEY='wedding_data_backup_';
+const $=s=>document.querySelector(s);
+const FILE='wedding-data.json', REPO='OuyangHuitong/Wedding';
+function openDB(){
+  return new Promise(res=>{
+    try{
+      const rq=indexedDB.open('wedding_backup',2);
+      rq.onupgradeneeded=e=>{ const db=e.target.result;
+        if(!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+        if(!db.objectStoreNames.contains('imgs')) db.createObjectStore('imgs'); };
+      rq.onsuccess=e=>res(e.target.result); rq.onerror=()=>res(null);
+    }catch(e){ res(null); }
+  });
+}
+function getAll(db,store){
+  return new Promise(res=>{
+    if(!db||!db.objectStoreNames.contains(store)) return res([]);
+    try{
+      const out=[];
+      const cur=db.transaction(store).objectStore(store).openCursor();
+      cur.onsuccess=e=>{ const c=e.target.result; if(c){ out.push([c.key,c.value]); c.continue(); } else res(out); };
+      cur.onerror=()=>res(out);
+    }catch(e){ res([]); }
+  });
+}
+function stats(d){
+  const n=k=>(d[k]||[]).length;
+  let img=0,tok=0;
+  ['ideas','progress','shopping','paizhao','video','game'].forEach(k=>(d[k]||[]).forEach(x=>{
+    (x.imgs||[]).forEach(v=>{ if(typeof v==='string'&&v.indexOf('idb:')===0) tok++; else img++; });
+  }));
+  let mktxt=0,mkimg=0;
+  if(d.makeup&&typeof d.makeup==='object'){
+    Object.keys(d.makeup).forEach(k=>{
+      const m=d.makeup[k]; if(!m) return;
+      mkimg+=(m.imgs||[]).length;
+      Object.keys(m.fields||{}).forEach(f=>{ const v=m.fields[f]; if(!v) return;
+        mktxt+=(v.text||'').length; mkimg+=(v.imgs||[]).length; });
+    });
+  }
+  return {n:{ideas:n('ideas'),prog:n('progress'),shop:n('shopping'),cost:n('costs'),pz:n('paizhao'),vd:n('video'),gm:n('game')},img,tok,mktxt,mkimg};
+}
+function fmt(ts){ if(!ts) return '时间未知';
+  const dd=new Date(ts); const p=x=>String(x).padStart(2,'0');
+  return dd.getFullYear()+'-'+p(dd.getMonth()+1)+'-'+p(dd.getDate())+' '+p(dd.getHours())+':'+p(dd.getMinutes()); }
+async function hydrateImages(d,db){
+  const cache=await getAll(db,'imgs');
+  const map={}; cache.forEach(([k,v])=>map[k]=v);
+  let fixed=0;
+  const conv=o=>{ if(!o||!Array.isArray(o.imgs)) return;
+    o.imgs=o.imgs.map(s=>{ if(typeof s==='string'&&s.indexOf('idb:')===0){ const r=map[s.slice(4)]; if(r){fixed++;return r;} } return s; }); };
+  ['ideas','progress','shopping','paizhao','video','game'].forEach(k=>(d[k]||[]).forEach(conv));
+  if(d.makeup) Object.keys(d.makeup).forEach(k=>{ const m=d.makeup[k]; if(!m) return; conv(m);
+    Object.keys(m.fields||{}).forEach(f=>conv(m.fields[f])); });
+  return fixed;
+}
+async function pushToCloud(d,token){
+  const B='https://api.github.com/repos/'+REPO+'/contents/'+FILE;
+  const h={Authorization:'Bearer '+token,Accept:'application/vnd.github+json'};
+  let sha=null;
+  try{ const r=await fetch(B,{headers:h}); if(r.ok) sha=(await r.json()).sha; }catch(e){}
+  const body={message:'抢救恢复 '+new Date().toLocaleString(),content:btoa(unescape(encodeURIComponent(JSON.stringify(d))))};
+  if(sha) body.sha=sha;
+  const r=await fetch(B,{method:'PUT',headers:h,body:JSON.stringify(body)});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return true;
+}
+(async()=>{
+  const db=await openDB();
+  const cands=[];
+  // 1. 当前主存档
+  const curRaw=localStorage.getItem(KEY);
+  if(curRaw){ try{ const d=JSON.parse(curRaw); cands.push({tag:'当前正在用',ts:d._ts||0,d:d,cur:true}); }catch(e){} }
+  // 2. 时间机器快照
+  Object.keys(localStorage).filter(k=>k.indexOf(BAK)===0).forEach(k=>{
+    try{ const d=JSON.parse(localStorage.getItem(k)); cands.push({tag:'自动快照',ts:Number(k.slice(BAK.length).split('_')[0])||d._ts||0,d:d}); }catch(e){}
+  });
+  // 3. 导出的数据码备份
+  Object.keys(localStorage).filter(k=>k.indexOf(SKEY)===0).forEach(k=>{
+    try{ const d=JSON.parse(localStorage.getItem(k)); cands.push({tag:'本机导出备份',ts:d._ts||0,d:d}); }catch(e){}
+  });
+  // 4. IndexedDB 里的整份备份
+  const kv=await getAll(db,'kv');
+  kv.forEach(([k,v])=>{ try{ const d=JSON.parse(v); cands.push({tag:'手机备份区',ts:d._ts||0,d:d}); }catch(e){} });
+  const imgs=await getAll(db,'imgs');
+  if(!cands.length){
+    $('#msg').innerHTML='<span class="bad">手机里没有找到任何存档。请不要清理浏览器数据，马上告诉我。</span>';
+    return;
+  }
+  cands.sort((a,b)=>b.ts-a.ts);
+  $('#msg').innerHTML='扫描完成：找到 <b>'+cands.length+'</b> 份存档，图片库里另有 <b>'+imgs.length+'</b> 张图。找到你要的那份，点下面的按钮：';
+  $('#list').innerHTML=cands.map((c,i)=>{
+    const s=stats(c.d);
+    const real=s.img+s.tok;
+    return '<div class="item'+(c.cur?' now':'')+'">'+
+      '<div class="tt">'+fmt(c.ts)+(c.cur?' · 当前':'')+' <span class="mut" style="font-weight:400">'+c.tag+'</span></div>'+
+      '<div class="mut" style="margin:4px 0 8px">灵感'+s.n.ideas+' · 进度'+s.n.prog+' · 待购'+s.n.shop+' · 开销'+s.n.cost+' · 拍照'+s.n.pz+' · 视频'+s.n.vd+' · 游戏'+s.n.gm+
+      '<br>图片 '+real+' 张'+(s.tok?'（其中 '+s.tok+' 张存在手机图片库中）':'')+' · 妆容文字 '+s.mktxt+' 字 · 妆容图片 '+s.mkimg+' 张</div>'+
+      '<div class="row2"><button class="btn" data-i="'+i+'">恢复这份并上传云端</button>'+
+      '<button class="btn ghost" data-x="'+i+'">下载存手机</button></div></div>';
+  }).join('');
+  $('#list').querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{
+    const c=cands[+b.dataset.x];
+    const blob=new Blob([JSON.stringify(c.d)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='备婚数据_'+fmt(c.ts).replace(/[: ]/g,'')+'.json';
+    a.click();
+  });
+  $('#list').querySelectorAll('[data-i]').forEach(b=>b.onclick=async()=>{
+    const c=cands[+b.dataset.i]; b.disabled=true; b.textContent='处理中…';
+    try{
+      const d=JSON.parse(JSON.stringify(c.d));
+      const fixed=await hydrateImages(d,db);
+      let sync=(d.sync)||null;
+      try{ const old=JSON.parse(localStorage.getItem(KEY)||'{}'); if(!sync&&old.sync) sync=old.sync; }catch(e){}
+      d.sync=sync; d._ts=Date.now();
+      // 写回本机（先备份现有 main）
+      try{ localStorage.setItem(BAK+Date.now()+'_beforerescue', localStorage.getItem(KEY)||''); }catch(e){}
+      try{ localStorage.setItem(KEY,JSON.stringify(d)); }catch(e){}
+      try{ const rq=indexedDB.open('wedding_backup',2);
+        rq.onupgradeneeded=e=>{ const dd=e.target.result;
+          if(!dd.objectStoreNames.contains('kv')) dd.createObjectStore('kv');
+          if(!dd.objectStoreNames.contains('imgs')) dd.createObjectStore('imgs'); };
+        rq.onsuccess=e=>{ e.target.result.transaction('kv','readwrite').objectStore('kv').put(JSON.stringify(d),'main'); }; }catch(e){}
+      let up='（本机已恢复）';
+      if(sync&&sync.token&&sync.mode==='gh'){
+        try{ await pushToCloud(d,sync.token); up='已恢复并上传云端 ✓'; }
+        catch(e){ up='本机已恢复；上传到云端失败（'+e.message+'）'; }
+      }
+      $('#msg').innerHTML='<span class="ok">完成：'+up+(fixed?'　图片还原 '+fixed+' 张':'')+'　现在打开工作台看看。</span>';
+    }catch(e){ $('#msg').innerHTML='<span class="bad">出错：'+e.message+'</span>'; b.disabled=false; b.textContent='恢复这份并上传云端'; }
+  });
+})();
+</script>
+</body>
+</html>
